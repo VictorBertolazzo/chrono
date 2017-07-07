@@ -129,8 +129,8 @@ int main(int argc, char* argv[]) {
 	
 
 
-	// 0. Set the path to the Chrono data folder
-	SetChronoDataPath(CHRONO_DATA_DIR);
+	//// 0. Set the path to the Chrono data folder
+	//SetChronoDataPath(CHRONO_DATA_DIR);
 	// 1. Create the system
     ChSystemNSC system;
 	system.Set_G_acc(ChVector<>(.0,.0,.0));

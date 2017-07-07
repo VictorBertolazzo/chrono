@@ -22,7 +22,7 @@ endif("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
 
-message(STATUS "==== Test programs ====")
+message(STATUS "==== Wheel Loader programs ====")
 
 
 
@@ -66,24 +66,6 @@ SET(MODELS
 SOURCE_GROUP("utilities" FILES ${UTILITIES})
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
 SOURCE_GROUP("" FILES ${MODELS}.cpp ${MODEL_FILES})
-
-#--------------------------------------------------------------
-# Find the Chrono package with required components
-#--------------------------------------------------------------
-
-
-
-#--------------------------------------------------------------
-# Append to the parent's list of DLLs (and make it visible up)
-#--------------------------------------------------------------
-
-
-#--------------------------------------------------------------
-# Compilation flags
-#--------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-
 SET(CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}")
 
 SET(LIBRARIES
@@ -95,6 +77,10 @@ SET(LIBRARIES
     ChronoModels_vehicle
 )
 
+#--------------------------------------------------------------
+# Additional include directories
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
 INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
@@ -113,7 +99,13 @@ foreach(PROGRAM ${MODELS})
 
   message(STATUS "...add ${PROGRAM}")
 
-  add_executable(${PROGRAM}  "${PROGRAM}.cpp" ${MODEL_FILES} ${UTILITIES})
+  if (${PROGRAM} MATCHES "demo_PAR_WheelLoader")
+		add_executable(${PROGRAM}  "${PROGRAM}.cpp"  ${UTILITIES} ${MODEL_FILES})
+  else()
+		add_executable(${PROGRAM}  "${PROGRAM}.cpp"  ${UTILITIES})
+
+  endif()
+ 
   source_group(""  FILES "${PROGRAM}.cpp")
 
   set_target_properties(${PROGRAM} PROPERTIES
@@ -122,6 +114,6 @@ foreach(PROGRAM ${MODELS})
     LINK_FLAGS "${CH_LINKERFLAG_EXE}"
   )
 
-  target_link_libraries(${PROGRAM} ${CHRONO_LIBRARIES})
+  target_link_libraries(${PROGRAM} ${CHRONO_LIBRARIES} ${LIBRARIES})
 
 endforeach(PROGRAM)

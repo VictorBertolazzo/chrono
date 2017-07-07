@@ -432,7 +432,7 @@ void AddCapsHulls(std::vector<Points> p_int, BucketSide side, std::shared_ptr<Ch
 #else
 	bucket->SetMaterialSurface(materialDVI);
 #endif
-	bucket->GetCollisionModel()->BuildModel();
+	bucket->GetCollisionModel()->BuildModel();//try to Debug and Check collision assert
 	geometry::ChTriangleMeshConnected bucket_mesh;
 	bucket_mesh.LoadWavefrontMesh(out_dir + "data/bucket_mod.obj", false, false);
 	auto bucket_mesh_shape = std::make_shared<ChTriangleMeshShape>();

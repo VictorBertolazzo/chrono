@@ -257,8 +257,8 @@ int main(int argc, char* argv[]) {
 	ReadFile(int_profile, p_int);
 	ReadFile(points_hull, hull);
 
-	// 0. Set the path to the Chrono data folder
-	SetChronoDataPath(CHRONO_DATA_DIR);
+	//// 0. Set the path to the Chrono data folder
+	//SetChronoDataPath(CHRONO_DATA_DIR);
 	
 	
 	 // Create a material (will be used by both objects)
