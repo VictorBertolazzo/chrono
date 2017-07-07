@@ -388,7 +388,7 @@ int main(int argc, char* argv[]) {
     ///---------------------------OR CREATE A SIMPLE GROUND BODY------------------------
 
 	// Ground body
-	auto ground = std::shared_ptr<ChBody>(front_side.GetSystem()->NewBody());
+	auto ground = std::shared_ptr<ChBody>(system->NewBody());
 	system->Add(ground);
 	ground->SetIdentifier(-1); ground->SetName("Ground-Terrain");
 	ground->SetBodyFixed(true);
