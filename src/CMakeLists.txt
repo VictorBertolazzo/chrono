@@ -9,6 +9,7 @@
 #-----------------------------------------------------------------------------
 
 option(BUILD_DEMOS "Build demo programs" ON)
+option(BUILD_WHEELLOADER "Build WL programs" ON)
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
@@ -290,6 +291,9 @@ if(BUILD_DEMOS)
 endif()
 if(BUILD_TESTING)
   add_subdirectory(unit_tests)
+endif()
+if(BUILD_WHEELLOADER)
+  add_subdirectory(wheelloader)
 endif()
 
 #------------------------------------------------------------
