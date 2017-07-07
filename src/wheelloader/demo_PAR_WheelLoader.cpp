@@ -329,38 +329,6 @@ int main(int argc, char* argv[]) {
 
 #endif
 
-
-	// --------------------------
-	// Construct the Wheel Loader vehicle
-	// --------------------------
-
-	// Create the front side
-	Articulated_Front front_side(system); 
-	front_side.Initialize(ChCoordsys<>(initLoc, initRot));
-	front_side.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-	front_side.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-	front_side.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-	front_side.SetWheelVisualizationType(VisualizationType::NONE);
-	
-	// Create the rear side
-	Articulated_Rear rear_side(std::static_pointer_cast<Articulated_Chassis>(front_side.GetChassis()));
-	rear_side.Initialize();
-	rear_side.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-	rear_side.SetWheelVisualizationType(VisualizationType::NONE);
-
-	// Create the driver system
-	// ...temporary workaround
-	// ChDataDriver driver(front_side, vehicle::GetDataFile("M113/driver/Acceleration.txt"));
-	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono-build/bin/data/vehicle/M113/driver/Acceleration.txt");
-	driver.Initialize();
-
-	//front_side.GetSystem()->ShowHierarchy(GetLog());
-	//system->ShowHierarchy(GetLog());
-
-	// -------------------
-	// Create the terrain.
-	// -------------------
-
 	// Contact material
 #ifdef USE_SMC
 	auto mat_g = std::make_shared<ChMaterialSurfaceSMC>();
@@ -385,7 +353,7 @@ int main(int argc, char* argv[]) {
 
 	//auto ground = std::shared_ptr<ChBody>(terrain.GetGroundBody());
 
-    ///---------------------------OR CREATE A SIMPLE GROUND BODY------------------------
+	///---------------------------OR CREATE A SIMPLE GROUND BODY------------------------
 
 	// Ground body
 	auto ground = std::shared_ptr<ChBody>(system->NewBody());
@@ -395,7 +363,6 @@ int main(int argc, char* argv[]) {
 	ground->SetCollide(true);
 
 	ground->SetMaterialSurface(mat_g);
-
 	ground->GetCollisionModel()->ClearModel();
 
 	//--------------------------COMMON GEOMETRY DEFINITION-----------------------
@@ -428,6 +395,33 @@ int main(int argc, char* argv[]) {
 	if (terrain_type == GRANULAR_TERRAIN) {
 		vertical_offset = CreateParticles(system);
 	}
+
+
+	// --------------------------
+	// Construct the Wheel Loader vehicle
+	// --------------------------
+
+	// Create the front side
+	Articulated_Front front_side(system); 
+	front_side.Initialize(ChCoordsys<>(initLoc, initRot));
+	front_side.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+	front_side.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+	front_side.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+	front_side.SetWheelVisualizationType(VisualizationType::NONE);
+	
+	// Create the rear side
+	Articulated_Rear rear_side(std::static_pointer_cast<Articulated_Chassis>(front_side.GetChassis()));
+	rear_side.Initialize();
+	rear_side.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+	rear_side.SetWheelVisualizationType(VisualizationType::NONE);
+
+	// Create the driver system
+	// ...temporary workaround
+	// ChDataDriver driver(front_side, vehicle::GetDataFile("M113/driver/Acceleration.txt"));
+	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono-build/bin/data/vehicle/M113/driver/Acceleration.txt");
+	driver.Initialize();
+
+
 
 	// Create and initialize the powertrain system
 	Generic_SimplePowertrain powertrain;

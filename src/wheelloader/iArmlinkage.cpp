@@ -172,8 +172,8 @@ int main(int argc, char* argv[]) {
 	materialDEM->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
 
-	// 0. Set the path to the Chrono data folder
-	SetChronoDataPath(CHRONO_DATA_DIR);
+	//// 0. Set the path to the Chrono data folder
+	//SetChronoDataPath(CHRONO_DATA_DIR);
 
 	// 1. Create the system: it's creating with a boring method due previous bugs
 #ifdef USE_PENALTY
