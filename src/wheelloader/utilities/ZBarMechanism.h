@@ -1,17 +1,19 @@
 using namespace chrono;
 using namespace chrono::collision;
 
+#include "chrono/physics/ChLinkMarkers.h"
 // Actuator test times : VALUES
 double ta1 = 2.00; double ta2 = 11.00; double ta3 = 15.00; double ta4 = 5.00; double ta5 = 12.00;
 // Actuator test times : TESTING IDEA
 // Tilt : constant until ta4, then negative displacement(piling) until ta5, at the end constant til ta3;
 // Lift : constant until ta1, then positive displacement(piling) til ta2, at the constant til ta3;
 // chassis : FWD motion til ta1, stop until ta2, then RWD til ta3;
-
+// ------------------CLASSES----------------------------------------------
+#include "Pneumatics.h"
 
 // ------------------CLASSES----------------------------------------------
 class MyWheelLoader {
-public:
+    public:
 	// Data
 
 	// Handles
@@ -28,8 +30,10 @@ public:
 	std::shared_ptr<ChLinkLockRevolute> rev_link2bucket;
 	std::shared_ptr<ChLinkLockRevolute> rev_ch2lift;
 
-	std::shared_ptr<ChLinkLinActuator> lin_ch2lift;
-	std::shared_ptr<ChLinkLinActuator> lin_lift2rod;
+	std::shared_ptr<myHYDRactuator> lin_ch2lift;		
+		//std::shared_ptr<ChLinkLinActuator> lin_ch2lift;
+	std::shared_ptr<myHYDRactuator> lin_lift2rod;	
+	   //std::shared_ptr<ChLinkLinActuator> lin_lift2rod;
 
 	ChQuaternion<> z2y;
 	ChQuaternion<> z2x;
@@ -338,49 +342,9 @@ public:
 
 
 
-
+#define USE_PNEUMATIC
 		/////////////////////////////////////------------------Add joint constraints------------------////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		// Linear Actuator between the lift body and the so called rod(also known as rocker arm)
-		lin_lift2rod = std::make_shared<ChLinkLinActuator>();
-		ChVector<> u11 = (POS_lift2lever - PIS_lift2lever).GetNormalized();		//GetNormalized() yields a unit vector(versor)
-		ChVector<> w11 = Vcross(u11, VECT_Y).GetNormalized();					//overkill
-		ChMatrix33<> rot11;														//no control on orthogonality, IT'S UP TO THE USER'
-		rot11.Set_A_axis(u11, VECT_Y, w11);
-		lin_lift2rod->SetName("linear_lift2rod");
-		lin_lift2rod->Initialize(rod, lift, false, ChCoordsys<>(POS_lift2lever, z2x >> rot11.Get_A_quaternion()), ChCoordsys<>(PIS_lift2lever, z2x >> rot11.Get_A_quaternion()));//m2 is the master
-		lin_lift2rod->Set_lin_offset(Vlength(POS_lift2lever - PIS_lift2lever));
-		// Asset for the linear actuator
-		auto bp_asset = std::make_shared<ChPointPointSegment>();				//asset
-		lin_lift2rod->AddAsset(bp_asset);
-		
-			// A test law for the actuator--> it'll be substitued by an accessor method->no more inplace law definiton in the future.
-			// temporary piston law for lift2rod actuator -> it'll be set constant by default and changeable by accessor
-			// Note : it is as displacement law
-			auto legget1 = std::make_shared<ChFunction_Const>();
-			auto legget2 = std::make_shared<ChFunction_Ramp>(); legget2->Set_ang(-.008);
-			auto legget3 = std::make_shared<ChFunction_Const>();
-			auto tilt_law_test = std::make_shared<ChFunction_Sequence>(); tilt_law_test->InsertFunct(legget1, ta4, 1, true); tilt_law_test->InsertFunct(legget2, ta5 - ta4, 1., true); tilt_law_test->InsertFunct(legget3, ta3 - ta5, 1., true);
-			//	// Former test function
-			auto legge1 = std::make_shared<ChFunction_Ramp>();			legge1->Set_ang(1.0);
-			auto legge2 = std::make_shared<ChFunction_Const>();
-			auto legge3 = std::make_shared<ChFunction_Ramp>();			legge3->Set_ang(-1.0);
-			auto tilt_law = std::make_shared<ChFunction_Sequence>();
-			tilt_law->InsertFunct(legge1, 1.0, 1, true);tilt_law->InsertFunct(legge2, 1.0, 1., true);tilt_law->InsertFunct(legge3, 1.0, 1., true);
-			auto tilt_law_seq = std::make_shared<ChFunction_Repeat>();
-			tilt_law_seq->Set_fa(tilt_law);
-			tilt_law_seq->Set_window_length(3.0);
-			tilt_law_seq->Set_window_start(0.0);
-			tilt_law_seq->Set_window_phase(3.0);
-			// test_law
-			auto tilt_law_testing = std::make_shared<ChFunction_Const>();
-			tilt_law_testing->Set_yconst(Vlength(VNULL));
-			// end test_law
-			lin_lift2rod->Set_dist_funct(tilt_law);
-
-		lin_lift2rod->Set_dist_funct(tilt_law);
-		system.Add(lin_lift2rod);
-
 		// Revolute Joint between the lift body and the rod, located near the geometric baricenter(int(r dA)/int(dA)) of the rod LIFT-ROD. 
 		// // It is the second of the three joints that interest the rod body(also known as rocker arm).
 		rev_lift2rod = std::make_shared<ChLinkLockRevolute>();
@@ -412,12 +376,88 @@ public:
 		rev_ch2lift->SetName("revolute_chassis2lift");
 		rev_ch2lift->Initialize(lift, chassis, ChCoordsys<>(POS_ch2lift, z2y >> rot1.Get_A_quaternion()));	// z-dir default rev axis is rotated on y-dir
 		system.AddLink(rev_ch2lift);
+
+		// Linear Actuator between the lift body and the so called rod(also known as rocker arm)
+		ChVector<> u11 = (POS_lift2lever - PIS_lift2lever).GetNormalized();		//GetNormalized() yields a unit vector(versor)
+		ChVector<> w11 = Vcross(u11, VECT_Y).GetNormalized();					//overkill
+		ChMatrix33<> rot11;														//no control on orthogonality, IT'S UP TO THE USER'
+		rot11.Set_A_axis(u11, VECT_Y, w11);
+#ifdef USE_PNEUMATIC
+		auto force = std::make_shared<myHYDRforce>();
+		//ChFunction_Recorder pressure; pressure.AddPoint(0., 1);
+		auto pressure = std::make_shared<ChFunction_Recorder>(); pressure->AddPoint(0., 1.); pressure->AddPoint(0.5, 0.);
+		//ChFunction_Sine pressure; pressure.Set_freq(1.); pressure.Set_amp(.2);
+		lin_lift2rod = std::make_shared<myHYDRactuator>();
+		lin_lift2rod->SetName("linear_lift2rod");
+		// ChLinkMarkers child, force applied on slave m1
+		lin_lift2rod->Initialize(rod, lift, false, ChCoordsys<>(POS_lift2lever, z2x >> rot11.Get_A_quaternion()), ChCoordsys<>(PIS_lift2lever, z2x >> rot11.Get_A_quaternion()));//m2 is the master
+		lin_lift2rod->Set_HYDRforce(force);
+		lin_lift2rod->Set_PressureH(pressure);
+		// Attach a visualization asset.
+		lin_lift2rod->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
+
+#else
+		lin_lift2rod = std::make_shared<ChLinkLinActuator>();
+		//		lin_lift2rod = std::unique_ptr<ChLinkMarkers>(new ChLinkLinActuator());
+		lin_lift2rod->SetName("linear_lift2rod");
+		lin_lift2rod->Initialize(rod, lift, false, ChCoordsys<>(POS_lift2lever, z2x >> rot11.Get_A_quaternion()), ChCoordsys<>(PIS_lift2lever, z2x >> rot11.Get_A_quaternion()));//m2 is the master
+		lin_lift2rod->Set_lin_offset(Vlength(POS_lift2lever - PIS_lift2lever));
+
+		// A test law for the actuator--> it'll be substitued by an accessor method->no more inplace law definiton in the future.
+		// temporary piston law for lift2rod actuator -> it'll be set constant by default and changeable by accessor
+		// Note : it is as displacement law
+		auto legget1 = std::make_shared<ChFunction_Const>();
+		auto legget2 = std::make_shared<ChFunction_Ramp>(); legget2->Set_ang(-.008);
+		auto legget3 = std::make_shared<ChFunction_Const>();
+		auto tilt_law_test = std::make_shared<ChFunction_Sequence>(); tilt_law_test->InsertFunct(legget1, ta4, 1, true); tilt_law_test->InsertFunct(legget2, ta5 - ta4, 1., true); tilt_law_test->InsertFunct(legget3, ta3 - ta5, 1., true);
+		//	// Former test function
+		auto legge1 = std::make_shared<ChFunction_Ramp>();			legge1->Set_ang(1.0);
+		auto legge2 = std::make_shared<ChFunction_Const>();
+		auto legge3 = std::make_shared<ChFunction_Ramp>();			legge3->Set_ang(-1.0);
+		auto tilt_law = std::make_shared<ChFunction_Sequence>();
+		tilt_law->InsertFunct(legge1, 1.0, 1, true); tilt_law->InsertFunct(legge2, 1.0, 1., true); tilt_law->InsertFunct(legge3, 1.0, 1., true);
+		auto tilt_law_seq = std::make_shared<ChFunction_Repeat>();
+		tilt_law_seq->Set_fa(tilt_law);
+		tilt_law_seq->Set_window_length(3.0);
+		tilt_law_seq->Set_window_start(0.0);
+		tilt_law_seq->Set_window_phase(3.0);
+		// test_law
+		auto tilt_law_testing = std::make_shared<ChFunction_Const>();
+		tilt_law_testing->Set_yconst(Vlength(VNULL));
+		// end test_law
+		lin_lift2rod->Set_dist_funct(tilt_law);
+
+		lin_lift2rod->Set_dist_funct(tilt_law);
+		// Asset for the linear actuator
+		auto bp_asset = std::make_shared<ChPointPointSegment>();				//asset
+		lin_lift2rod->AddAsset(bp_asset);
+
+#endif
+		system.AddLink(lin_lift2rod);
+
+
+
 		// CHASSIS-LIFT linear actuator
-		lin_ch2lift = std::make_shared<ChLinkLinActuator>();
 		ChVector<> u22 = (INS_ch2lift - PIS_ch2lift).GetNormalized();					//GetNormalized()
 		ChVector<> w22 = Vcross(u22, VECT_Y).GetNormalized();							//overkill
 		ChMatrix33<> rot22;																//no control on orthogonality, IT'S UP TO THE USER
 		rot22.Set_A_axis(u22, VECT_Y, w22);
+
+#ifdef USE_PNEUMATIC
+		auto lforce = std::make_shared<myHYDRforce>();
+//		ChFunction_Sine lpressure; lpressure.Set_freq(.5); lpressure.Set_amp(.3); lpressure.Set_phase(CH_C_PI_2);
+		auto lpressure = std::make_shared<ChFunction_Recorder>(); lpressure->AddPoint(0., 1.); lpressure->AddPoint(0.5, 0.);
+		//ChFunction_Recorder lpressure; lpressure.AddPoint(0., 1);
+		lin_ch2lift = std::make_shared<myHYDRactuator>();
+		lin_ch2lift->SetName("linear_chassis2lift");
+		// ChLinkMarkers child, force applied on slave m1
+		lin_ch2lift->Initialize(lift, chassis, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot11.Get_A_quaternion()));//m2 is the master
+		lin_ch2lift->Set_HYDRforce(lforce);
+		lin_ch2lift->Set_PressureH(lpressure);
+		// Attach a visualization asset.
+		lin_ch2lift->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
+#else
+		lin_ch2lift = std::make_shared<ChLinkLinActuator>();
 		lin_ch2lift->SetName("linear_chassis2lift");
 		lin_ch2lift->Initialize(lift, chassis, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot11.Get_A_quaternion()));//m2 is the master
 		lin_ch2lift->Set_lin_offset(Vlength(INS_ch2lift - PIS_ch2lift));
@@ -447,7 +487,9 @@ public:
 		// end test_law
 
 		lin_ch2lift->Set_dist_funct(lift_law_sine);
-		system.Add(lin_ch2lift);
+#endif
+
+		system.AddLink(lin_ch2lift);
 	}
 	// Destructor
 	~MyWheelLoader(){}
@@ -459,4 +501,3 @@ public:
 
 };
 
-// ------------------CLASSES----------------------------------------------

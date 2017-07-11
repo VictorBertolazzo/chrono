@@ -61,6 +61,7 @@ SET(MODELS
  SET(UTILITIES
  utilities/UtilityFunctions.h
  utilities/ZBarMechanism.h
+ utilities/Pneumatics.h
   )
 
 SOURCE_GROUP("utilities" FILES ${UTILITIES})

@@ -9,8 +9,7 @@
 // Only the bucket body has collision shapes, visualization shapes of the other bodies are kept simplified for a better understanding of the mechanism.
 
 
-#include <iostream>
-
+// Irrlicht
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/collision/ChCCollisionUtils.h"
 #include "chrono/core/ChRealtimeStep.h"
@@ -21,19 +20,18 @@
 #include "chrono/assets/ChPointPointDrawing.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-
+// Particle Generation
 #include "chrono/utils/ChUtilsGenerators.h"
-
+// C++ libraries
+#include <iostream>
 #include <stdio.h>
 #include <vector>
 #include <cmath>
-
 #include <irrlicht.h>
-
+// OpenGL
 #include "chrono_opengl/ChOpenGLWindow.h"
-
+// Custom functions 
 #include "utilities/ZBarMechanism.h"
-#include "utilities/Pneumatics.h"
 
 
 
@@ -50,119 +48,11 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-// Define Flag in order to decide which contact method algorithm use:DVI or DEM
+// Define Flag in order to decide which contact method algorithm use:NSC(DVI) or SMC(DEM)
 #define USE_PENALTY
 // Enumerator used for creating the closing caps of the bucket
 enum BucketSide { LEFT, RIGHT };
-// Utilities 
-
-// Structure define for containing information
-struct Points {
-	Points() {}
-	Points(float x, float y, float z)
-		: mx(x), my(y), mz(z) {}
-	float mx; float my; float mz;
-};
-// It fills a vector of Points with information given by a file
-void ReadFile(const std::string& filename, std::vector<Points>& profile) {
-	std::ifstream ifile(filename.c_str());
-	std::string line;
-
-	while (std::getline(ifile, line)) {
-		std::istringstream iss(line);
-		float xpos, ypos, zpos;
-		iss >> xpos >> ypos >> zpos;
-		if (iss.fail())
-			break;
-		profile.push_back(Points(xpos, ypos, zpos));
-	}
-	ifile.close();
-
-
-
-}
-
-// Bucket main body creation via ConvexHulls definition:it adds the collision shapes identified by points located into the two Points structures
-void AddBucketHull(std::vector<Points> p_ext, std::vector<Points> p_int, std::shared_ptr<ChBody> bucket) {
-
-	for (int iter = 0; iter < p_ext.size() - 1; iter++) {
-		std::vector<ChVector<double>> cloud;
-		double width = 1.0;// or halve an input
-
-		cloud.push_back(ChVector<>(p_int[iter].mx, p_int[iter].my - width, p_int[iter].mz));
-		cloud.push_back(ChVector<>(p_int[iter + 1].mx, p_int[iter + 1].my - width, p_int[iter + 1].mz));
-		cloud.push_back(ChVector<>(p_ext[iter + 1].mx, p_ext[iter + 1].my - width, p_ext[iter + 1].mz));
-		cloud.push_back(ChVector<>(p_ext[iter].mx, p_ext[iter].my - width, p_ext[iter].mz));
-
-		cloud.push_back(ChVector<>(p_int[iter].mx, p_int[iter].my + width, p_int[iter].mz));
-		cloud.push_back(ChVector<>(p_int[iter + 1].mx, p_int[iter + 1].my + width, p_int[iter + 1].mz));
-		cloud.push_back(ChVector<>(p_ext[iter + 1].mx, p_ext[iter + 1].my + width, p_ext[iter + 1].mz));
-		cloud.push_back(ChVector<>(p_ext[iter].mx, p_ext[iter].my + width, p_ext[iter].mz));
-
-
-
-		bucket->GetCollisionModel()->AddConvexHull(cloud, ChVector<>(0, 0, 0), QUNIT);
-
-
-		auto shape = std::make_shared<ChTriangleMeshShape>();
-		collision::ChConvexHullLibraryWrapper lh;
-		lh.ComputeHull(cloud, shape->GetMesh());
-		//bucket->AddAsset(shape);
-
-		//bucket->AddAsset(std::make_shared<ChColorAsset>(0.5f, 0.0f, 0.0f));
-	}
-}
-// Bucket caps adding:
-void AddCapsHulls(std::vector<Points> p_int, BucketSide side, std::shared_ptr<ChBody> bucket) {
-
-
-	for (int iter = 0; iter < p_int.size() - 1; iter++) {
-
-		std::vector<ChVector<double>> cloud;
-		double width;
-		switch (side)
-		{
-		case LEFT:
-			width = +1.;
-			break;
-		case RIGHT:
-			width = -1.0;
-			break;
-		default:
-			width = .0;
-			break;
-		}
-
-
-		double th = .05;
-
-		cloud.push_back(ChVector<>(p_int[iter].mx, p_int[iter].my + width - th, p_int[iter].mz));
-		cloud.push_back(ChVector<>(p_int[iter + 1].mx, p_int[iter + 1].my + width - th, p_int[iter + 1].mz));
-		cloud.push_back(ChVector<>(.70, width - th, .25));
-
-		cloud.push_back(ChVector<>(p_int[iter].mx, p_int[iter].my + width + th, p_int[iter].mz));
-		cloud.push_back(ChVector<>(p_int[iter + 1].mx, p_int[iter + 1].my + width + th, p_int[iter + 1].mz));
-		cloud.push_back(ChVector<>(.70, width + th, .25));
-
-		bucket->GetCollisionModel()->AddConvexHull(cloud, ChVector<>(0, 0, 0), QUNIT);
-		
-		auto shape = std::make_shared<ChTriangleMeshShape>();
-		collision::ChConvexHullLibraryWrapper lh;
-		lh.ComputeHull(cloud, shape->GetMesh());
-		//bucket->AddAsset(shape);
-
-		//bucket->AddAsset(std::make_shared<ChColorAsset>(0.5f, 0.0f, 0.0f));
-	}
-}
 int main(int argc, char* argv[]) {
-	// Utilities Management
-	std::vector<Points> p_ext;
-	std::vector<Points> p_int;
-	const std::string out_dir = "../";
-	const std::string& ext_profile = out_dir + "data/ext_profile.txt";
-	const std::string& int_profile = out_dir + "data/int_profile.txt";
-	ReadFile(ext_profile, p_ext);
-	ReadFile(int_profile, p_int);
 
 	// Create a material (will be used by both objects)
 	auto material = std::make_shared<ChMaterialSurfaceNSC>();
@@ -175,9 +65,7 @@ int main(int argc, char* argv[]) {
 	materialDEM->SetFriction(0.4f);
 	materialDEM->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
-    // No more used in the fork.
-	//// 0. Set the path to the Chrono data folder
-	//SetChronoDataPath(CHRONO_DATA_DIR);
+	// 0. Set the path to the Chrono data folder
 
 	// 1. Create the system: it's creating with a boring method due previous bugs
 	ChSystem* system;
@@ -191,7 +79,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 	// Set the gravity acceleration
-	system->Set_G_acc(ChVector<>(.0,.0,0.));
+	system->Set_G_acc(ChVector<>(.0,.0,-9.806));
 
 
 
@@ -204,34 +92,17 @@ int main(int argc, char* argv[]) {
 	ground->SetIdentifier(-1);
 	ground->SetName("ground");
 
-    // measures are in [m]
+  //  // measures are in [m]
 		ChVector<> COG_chassis(0, 0, 1.575);							// somewhere
-		ChVector<> COG_lift(2.0, 0., 1.05);
-		ChVector<> COG_lever(3.6625, 0.0, 1.575);
-		ChVector<> COG_rod(2.7, 0.0, 1.3125);
-		ChVector<> COG_link(3.0, 0.0, 0.5);
-		ChVector<> COG_bucket(4.0,.0, 0.525);
-
-		ChVector<> POS_lift2rod(2.825,.0, 1.05);						//rev joint(LIFT ARM) abs frame
-		ChVector<> POS_rod2lever(3.6625,0., 1.575);						//rev joint(BUCKET LEVER) abs frame
-		ChVector<> POS_lift2bucket(3.50, .0,.21);						//chassis piston(LIFT ARM) insertion abs frame
-		ChVector<> POS_ch2lift(1.6,0, 2.1);								//Rev chassis->lift
-		ChVector<> POS_lift2lever(2.5, 0, 2.1);							//end position of actuator lift->lever
-		ChVector<> PIS_ch2lift(1.6, 0, 1.05);							//Act chassis->lift
-		ChVector<> PIS_lift2lever(2.0125, 0, 2.1);						//Act lift->lever
-
-		ChVector<> POS_rod2link(2.6, 0, 0.4);							//Act lift->lever
-		ChVector<> POS_link2bucket(3.69, .0, 0.71);						//chassis piston(BUCKET LEVER) insertion abs frame
-
-		ChVector<> INS_ch2lift(1.8,0,1.1);								// Insertion of boom piston over lift body
 
 		ChQuaternion<> z2y;
 		ChQuaternion<> z2x;
 		z2y.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
 		z2x.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(0, 1, 0));
+		
+		ChQuaternion<> test_quat;		test_quat.Q_from_AngAxis(-CH_C_1_PI/2,VECT_Y);
 
-
-	// 2 Create the rigid bodies : THE MECHANISM BODIES WILL BE SETUP IN A SEPARATE FUNCTION
+		// 2 Create the rigid bodies : THE MECHANISM BODIES WILL BE SETUP IN A SEPARATE FUNCTION
 #ifdef USE_CLASS
 		// LIFT
 //		auto lift = std::shared_ptr<ChBody>(system->NewBody());
@@ -495,6 +366,9 @@ int main(int argc, char* argv[]) {
     //CreateMechanism(*system, container);// Previous function.Obsolete.
     MyWheelLoader* mywl = new MyWheelLoader(*system); 
 //    system->ShowHierarchy(GetLog());
+	
+	
+			// CHASSIS-GROUND prismatic+hydractuator
 
 			// CHASSIS-GROUND prismatic+linactuator
 						auto prism_fix2ch = std::make_shared<ChLinkLockPrismatic>();
@@ -507,11 +381,11 @@ int main(int argc, char* argv[]) {
 						lin_fix2ch->Set_lin_offset(Vlength(VNULL));
 						system->AddLink(lin_fix2ch);
 						auto chassis_law = std::make_shared<ChFunction_Ramp>();
-						chassis_law->Set_ang(.10);//it'll act as the chassis speed
+						chassis_law->Set_ang(.00);//it'll act as the chassis speed
 						lin_fix2ch->Set_dist_funct(chassis_law);
 						
 				
-						//// CHASSIS-GROUND prismatic+linactuator
+			//// CHASSIS-GROUND prismatic+linactuator
 						//auto prism_fix2ch = std::make_shared<ChLinkLockPrismatic>();
 						//prism_fix2ch->SetName("prismatic_ground2chassis");
 						//prism_fix2ch->Initialize(mywl->chassis, ground, ChCoordsys<>(mywl->chassis->GetPos(), mywl->z2x));
@@ -527,12 +401,9 @@ int main(int argc, char* argv[]) {
 
 #endif
 
-				
-
 // 4. Write the system hierarchy to the console (default log output destination)
 //system->ShowHierarchy(GetLog());
 
-	
 // 5. Prepare visualization with Irrlicht
 //    Note that Irrlicht uses left-handed frames with Y up.
 	
@@ -550,6 +421,12 @@ int main(int argc, char* argv[]) {
 	application->AddTypicalLights();
 	application->AddTypicalCamera(core::vector3df(3, +8, 0), core::vector3df(0,0,0)); //'camera' location            // "look at" location
 											   // Let the Irrlicht application convert the visualization assets.
+	//application->GetSceneManager()->getActiveCamera()->bindTargetAndRotation(true);
+	//application->GetSceneManager()->getActiveCamera()->setRotation(irr::core::vector3df(0,0,0));
+
+	irr::scene::ICameraSceneNode* camera = application->GetSceneManager()->addCameraSceneNode(application->GetSceneManager()->getRootSceneNode(), core::vector3df(+2.5, +4., 0), core::vector3df(2., 0, 0));
+	camera->setUpVector(core::vector3df(0, 0, 1));
+	//application->GetSceneManager()->getActiveCamera()->setUpVector(core::vector3df(0, 0, 1));
 	application->AssetBindAll();
 	application->AssetUpdateAll();
     
