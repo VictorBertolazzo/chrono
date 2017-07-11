@@ -36,7 +36,7 @@
 #include "utilities/UtilityFunctions.h"
 
 enum TestType {LAYER, FUNNEL, DROP, CASCADE};
-TestType workcase = TestType::DROP;
+TestType workcase = TestType::LAYER;
 using namespace chrono;
 using namespace postprocess;
 
@@ -350,7 +350,7 @@ int main(int argc, char** argv) {
 								  hdims.y() -= 2 * r;
 								  // move the center abscissa by a 1*r 
 								  // center.x() += r * pow(-1, il);
-								  if (method == ChMaterialSurface::NSC){ time_step = .75e-3; }
+								  if (method == ChMaterialSurface::NSC){ time_step = .075e-3; }
 								  if (radius_g == 0.05){ time_end = 20.50; }
 
 	}
