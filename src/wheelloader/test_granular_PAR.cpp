@@ -119,7 +119,7 @@ double Ra_r = 3.0*radius_g;//Default Size of particles.
 int main(int argc, char** argv) {
 	uint max_iteration_normal = 0;
 	uint max_iteration_sliding = 0;
-	uint max_iteration_spinning = 25;
+	uint max_iteration_spinning = 100;
 	uint max_iteration_bilateral = 100;
 	// Create output directories.
 	if (povray_output) {
@@ -350,7 +350,7 @@ int main(int argc, char** argv) {
 								  hdims.y() -= 2 * r;
 								  // move the center abscissa by a 1*r 
 								  // center.x() += r * pow(-1, il);
-								  if (method == ChMaterialSurface::NSC){ time_step = .075e-3; }
+								  if (method == ChMaterialSurface::NSC){ time_step = 0.075e-3; }
 								  if (radius_g == 0.05){ time_end = 20.50; }
 
 	}

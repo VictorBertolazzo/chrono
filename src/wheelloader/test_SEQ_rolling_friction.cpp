@@ -91,7 +91,7 @@ using std::endl;
 
 int main(int argc, char** argv) {
 	double time_step = 1e-3;
-	double time_end = 1.00;
+	double time_end = 15.00;
 
 	uint max_iteration_normal = 0;
 	uint max_iteration_sliding = 0;
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 	double mass = density * (4.0 / 3.0) * CH_C_PI * pow(radius_g, 3);
 	double inertia = (2.0 / 5.0) * mass * pow(radius_g, 2);
 
-	double rolling_friction = 0.075 * radius_g;//RAISING mi_r=.5*r, BALLS TREPASS FLOOR.WHY????Still with mi_r=.1*r) 
+	double rolling_friction = 0.1 * radius_g;//RAISING mi_r=.5*r, BALLS TREPASS FLOOR.WHY????Still with mi_r=.1*r) 
 	double Ra_d = 5.0*radius_g;//Distance from centers of particles.
 	double Ra_r = 3.0*radius_g;//Default Size of particles.
 
@@ -347,7 +347,10 @@ int main(int argc, char** argv) {
 	application.AddTypicalCamera(core::vector3df(.5, .3, 0.), core::vector3df(0, 0, 0)); //'camera' location            // "look at" location
 	
 	//ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0., +1.,.5));
-
+	
+	/*irr::scene::ICameraSceneNode* camera = application.GetSceneManager()->addCameraSceneNode(application.GetSceneManager()->getRootSceneNode(), core::vector3df(+2.5, +4., 0), core::vector3df(2., 0, 0));
+	camera->setUpVector(core::vector3df(0, 0, 1));
+*/
 	// Use this function for adding a ChIrrNodeAsset to all already created items.
 	// Otherwise use application.AssetBind(myitem); on a per-item basis.
 	application.AssetBindAll();
