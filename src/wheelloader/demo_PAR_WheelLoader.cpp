@@ -83,12 +83,12 @@ using std::endl;
 enum TerrainType { RIGID_TERRAIN, GRANULAR_TERRAIN };
 
 // Type of terrain
-TerrainType terrain_type = RIGID_TERRAIN;
+TerrainType terrain_type = GRANULAR_TERRAIN;
 // Type of tire model (RIGID or FIALA)
-TireModelType tire_model = TireModelType::RIGID;
+TireModelType tire_model = TireModelType::FIALA;// Remember to call terrain.Synchronize(..) for FIALA tire_model
 
 // Control visibility of containing bin walls
-bool visible_walls = true;
+bool visible_walls = false;
 
 // Dimensions
 double hdimX = 4.5;
@@ -110,14 +110,14 @@ ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1, 1, 1);
 
 float mu_g = 0.8f;
 
-unsigned int num_particles = 10e3; //// 40000;
+unsigned int num_particles = 30e3; //// about 12k per layer
 
 // -----------------------------------------------------------------------------
 // Specification of the vehicle model
 // -----------------------------------------------------------------------------
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(-hdimX + 4.5, 0, .35);//z=1
+ChVector<> initLoc(-hdimX + 4.5, 0, 0.35);//z=1
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Simple powertrain model
@@ -128,7 +128,7 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 // -----------------------------------------------------------------------------
 
 // Desired number of OpenMP threads (will be clamped to maximum available)
-int threads = 1;
+int threads = 20;
 
 // Perform dynamic tuning of number of threads?
 bool thread_tuning = false;
@@ -147,7 +147,7 @@ double tolerance = 0.01;
 
 int max_iteration_bilateral = 1000;  // 1000;
 int max_iteration_normal = 0;
-int max_iteration_sliding = 200;  // 2000;
+int max_iteration_sliding = 100;  // 2000;
 int max_iteration_spinning = 0;
 
 float contact_recovery_speed = -1;
@@ -340,30 +340,30 @@ int main(int argc, char* argv[]) {
 	mat_g->SetFriction(mu_g);
 #endif
 
-	////---------------------CREATE THE TERRAIN----------------------------
-	//
-	//RigidTerrain terrain(front_side.GetSystem());
-	//terrain.SetContactFrictionCoefficient(0.9f);
-	//terrain.SetContactRestitutionCoefficient(0.01f);
-	//terrain.SetContactMaterialProperties(2e7f, 0.3f);
-	//terrain.SetColor(ChColor(0.5f, 0.5f, 1));
-	//terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-	//terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
-	//terrain.GetGroundBody()->GetCollisionModel()->ClearModel();
+	//---------------------CREATE THE TERRAIN----------------------------
+	
+	RigidTerrain terrain(system);
+	terrain.SetContactFrictionCoefficient(0.9f);
+	terrain.SetContactRestitutionCoefficient(0.01f);
+	terrain.SetContactMaterialProperties(2e7f, 0.3f);
+	terrain.SetColor(ChColor(0.5f, 0.5f, 1));
+	terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+	terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
+	terrain.GetGroundBody()->GetCollisionModel()->ClearModel();
 
-	//auto ground = std::shared_ptr<ChBody>(terrain.GetGroundBody());
+	auto ground = std::shared_ptr<ChBody>(terrain.GetGroundBody());
 
-	///---------------------------OR CREATE A SIMPLE GROUND BODY------------------------
+	/////---------------------------OR CREATE A SIMPLE GROUND BODY------------------------
 
-	// Ground body
-	auto ground = std::shared_ptr<ChBody>(system->NewBody());
-	system->Add(ground);
-	ground->SetIdentifier(-1); ground->SetName("Ground-Terrain");
-	ground->SetBodyFixed(true);
-	ground->SetCollide(true);
+	//// Ground body
+	//auto ground = std::shared_ptr<ChBody>(system->NewBody());
+	//system->Add(ground);
+	//ground->SetIdentifier(-1); ground->SetName("Ground-Terrain");
+	//ground->SetBodyFixed(true);
+	//ground->SetCollide(true);
 
-	ground->SetMaterialSurface(mat_g);
-	ground->GetCollisionModel()->ClearModel();
+	//ground->SetMaterialSurface(mat_g);
+	//ground->GetCollisionModel()->ClearModel();
 
 	//--------------------------COMMON GEOMETRY DEFINITION-----------------------
 	// Bottom box
@@ -394,8 +394,9 @@ int main(int argc, char* argv[]) {
 
 	if (terrain_type == GRANULAR_TERRAIN) {
 		vertical_offset = CreateParticles(system);
+		// Modify initial location wrt granular terrain height
+		initLoc = initLoc + ChVector<>(0., 0., vertical_offset + .0);
 	}
-
 
 	// --------------------------
 	// Construct the Wheel Loader vehicle
@@ -416,9 +417,12 @@ int main(int argc, char* argv[]) {
 	rear_side.SetWheelVisualizationType(VisualizationType::NONE);
 
 	// Create the driver system
-	// ...temporary workaround
+	// ...temporary workaround--IDEA, clamp a User Joystick here.
+	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/vehicle/M113/driver/Acceleration.txt");
 	// ChDataDriver driver(front_side, vehicle::GetDataFile("M113/driver/Acceleration.txt"));
-	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono-build/bin/data/vehicle/M113/driver/Acceleration.txt");
+
+	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/vehicle/generic/driver/Sample_Maneuver.txt");
+	//ChDataDriver driver(front_side, vehicle::GetDataFile("generic/driver/Sample_Manuever.txt"));
 	driver.Initialize();
 
 
@@ -557,10 +561,10 @@ int main(int argc, char* argv[]) {
 		// Update modules (process inputs from other modules)
 		driver.Synchronize(time);
         //------------COMMENT IF TERRAIN NOT PRESENT
-		//tire_FL->Synchronize(time, wheel_FL, terrain) ;
-		//tire_FR->Synchronize(time, wheel_FR, terrain);
-		//tire_RL->Synchronize(time, wheel_RL, terrain);
-		//tire_RR->Synchronize(time, wheel_RR, terrain);
+		tire_FL->Synchronize(time, wheel_FL, terrain) ;
+		tire_FR->Synchronize(time, wheel_FR, terrain);
+		tire_RL->Synchronize(time, wheel_RL, terrain);
+		tire_RR->Synchronize(time, wheel_RR, terrain);
 
 		powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
