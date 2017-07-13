@@ -385,7 +385,7 @@ class MyWheelLoader {
 #ifdef USE_PNEUMATIC
 		auto force = std::make_shared<myHYDRforce>();
 		//ChFunction_Recorder pressure; pressure.AddPoint(0., 1);
-		auto pressure = std::make_shared<ChFunction_Recorder>(); pressure->AddPoint(0., 1.); pressure->AddPoint(0.5, 0.);
+		auto pressure = std::make_shared<ChFunction_Recorder>(); pressure->AddPoint(0., 10e6); pressure->AddPoint(1.5, 40e6);
 		//ChFunction_Sine pressure; pressure.Set_freq(1.); pressure.Set_amp(.2);
 		lin_lift2rod = std::make_shared<myHYDRactuator>();
 		lin_lift2rod->SetName("linear_lift2rod");
@@ -446,7 +446,7 @@ class MyWheelLoader {
 #ifdef USE_PNEUMATIC
 		auto lforce = std::make_shared<myHYDRforce>();
 //		ChFunction_Sine lpressure; lpressure.Set_freq(.5); lpressure.Set_amp(.3); lpressure.Set_phase(CH_C_PI_2);
-		auto lpressure = std::make_shared<ChFunction_Recorder>(); lpressure->AddPoint(0., 1.); lpressure->AddPoint(0.5, 0.);
+		auto lpressure = std::make_shared<ChFunction_Recorder>(); lpressure->AddPoint(0., 1.); lpressure->AddPoint(1.5, 2.);
 		//ChFunction_Recorder lpressure; lpressure.AddPoint(0., 1);
 		lin_ch2lift = std::make_shared<myHYDRactuator>();
 		lin_ch2lift->SetName("linear_chassis2lift");
