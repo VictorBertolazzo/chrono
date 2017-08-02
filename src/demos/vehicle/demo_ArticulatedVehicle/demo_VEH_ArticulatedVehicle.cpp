@@ -34,6 +34,15 @@
 #include "subsystems/Articulated_Front.h"
 #include "subsystems/Articulated_Rear.h"
 
+// Chrono utility header files
+#include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
+
+#include "chrono/physics/ChBodyEasy.h"
+
+
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::generic;
@@ -165,6 +174,28 @@ int main(int argc, char* argv[]) {
     driver.SetBrakingDelta(render_step_size / braking_time);
 
     driver.Initialize();
+
+	// ---------------
+	// Tweak Solver Parameters
+	// ---------------
+	
+	//front_side.GetSystem()->SetSolverType(ChSolver::Type::APGD);
+
+	// ---------------
+	// Add an Obstacle to Verify RigidPinnedAxle goodness
+	// ---------------
+	
+	auto obstacle = std::make_shared<ChBodyEasyBox>(1., 1., 0.125,1000,true,true);
+	//front_side.GetSystem()->AddBody(obstacle);
+	obstacle->SetBodyFixed(true);
+	obstacle->SetPos(ChVector<>(initLoc.x() + 3., initLoc.y(), 0.));
+	obstacle->SetRot(initRot);
+	
+	// ---------------
+	// SetVerbose
+	// ---------------
+	app.GetSystem()->GetSolver()->SetVerbose(false);
+
 
     // ---------------
     // Simulation loop

@@ -125,11 +125,14 @@ void Articulated_Rear::Initialize() {
     m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
 
     // Create the connection to the front side.
-    m_joint = std::make_shared<ChLinkEngine>();
-    m_joint->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
+    //m_joint = std::make_shared<ChLinkLockRevolute>();
+	m_joint = std::make_shared<ChLinkEngine>();
+	m_joint->Initialize(m_chassis, m_front->GetBody(), ChCoordsys<>(connection, rot));
+	m_joint->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
     m_joint->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-    m_joint->Initialize(m_chassis, m_front->GetBody(), ChCoordsys<>(connection, rot));
+	////m_joint->Set_eng_mode(ChLinkEngine::ENG_MODE_TORQUE);
     m_chassis->GetSystem()->AddLink(m_joint);
+
 }
 
 // -----------------------------------------------------------------------------
@@ -159,10 +162,33 @@ void Articulated_Rear::Synchronize(double time, double steering, double braking,
     m_brakes[1]->Synchronize(braking);
 
     // Apply steering
-    double max_angle = CH_C_PI / 6;
-    auto fun = std::static_pointer_cast<ChFunction_Const>(m_joint->Get_rot_funct());
-    fun->Set_yconst(-max_angle * steering);
+
+// STEERING
+	    double max_angle = CH_C_PI / 6;
+		auto fun = std::static_pointer_cast<ChFunction_Const>(m_joint->Get_rot_funct()); 
+		//GetLog() << "h : "<<m_front->GetBody()->GetSystem()->GetStep() << "\n";
+		fun->Set_yconst(-max_angle * steering);
+
+// DATA DRIVER CASE throttle,brake,yaw-rate(steering)
+		//double h = m_front->GetBody()->GetSystem()->GetStep();
+		//auto yaw = std::static_pointer_cast<ChFunction_Const>(m_joint->Get_rot_funct());
+		//double prev = yaw->Get_yconst();
+		//yaw->Set_yconst(prev + steering*h);
+// TORQUE
+//	/*double max_angle = 0;
+//	auto fun = std::static_pointer_cast<ChFunction_Const>(m_joint->Get_tor_funct());
+//	fun->Set_yconst(-max_angle * steering);
+//*/
+
+
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+/////// Get a handle to the link engine joint.
+////std::shared_ptr<chrono::ChLinkEngine> Articulated_Rear::GetLinkEngine() const{
+////	return m_joint;
+////};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -199,3 +225,4 @@ WheelState Articulated_Rear::GetWheelState(const WheelID& wheel_id) const {
 
     return state;
 }
+

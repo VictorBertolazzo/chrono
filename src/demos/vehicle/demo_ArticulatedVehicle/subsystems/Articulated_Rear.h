@@ -54,6 +54,11 @@ class Articulated_Rear {
     /// Get the complete state for the specified wheel.
     chrono::vehicle::WheelState GetWheelState(const chrono::vehicle::WheelID& wheel_id) const;
 
+	/// Get a handle to the link engine joint.
+	std::shared_ptr<chrono::ChLinkEngine> GetLinkEngine() const;
+
+
+
   private:
     std::shared_ptr<Articulated_Chassis> m_front;  ///< handle to front side
 
@@ -63,7 +68,8 @@ class Articulated_Rear {
     chrono::vehicle::ChWheelList m_wheels;            ///< list of handles to wheel subsystems
     chrono::vehicle::ChBrakeList m_brakes;            ///< list of handles to brake subsystems
 
-    std::shared_ptr<chrono::ChLinkEngine> m_joint;
+	//std::shared_ptr<chrono::ChLinkLockRevolute> m_joint;
+	    std::shared_ptr<chrono::ChLinkEngine> m_joint;
 
     // Chassis mass properties
     static const double m_chassisMass;
