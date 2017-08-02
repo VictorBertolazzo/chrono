@@ -22,6 +22,8 @@ using namespace chrono::collision;
 			virtual double operator()(double time,          ///< current time
 				double pressureH,   ///< piston head-side pressure
 				double areaH,
+				double pressureR,
+				double areaR,
 				myHYDRactuator* link // back-pointer
 				) = 0;
 		};
@@ -33,9 +35,10 @@ using namespace chrono::collision;
 
 		void Set_HYDRforce(std::shared_ptr<ForceFunctor> force) { m_force_fun = force; }
 		void Set_PressureH(std::shared_ptr<ChFunction_Recorder> pressureH){ m_pressureH = pressureH; }
-		void Set_PressureR(ChFunction* pressureR){ m_pressureR = pressureR; }
+		void Set_PressureR(std::shared_ptr<ChFunction> pressureR){ m_pressureR = pressureR; }
 
 		double GetPressureH_value(double time)  { return m_pressureH->Get_y(time); }
+		double GetPressureR_value(double time)  { return m_pressureR->Get_y(time); }
 
 		void UpdateForces(double time)override{
 
@@ -44,8 +47,9 @@ using namespace chrono::collision;
 
 			// Get the pressure information
 			double pressureH = GetPressureH_value(time);
+			double pressureR = GetPressureR_value(time);
 			// Invoke the provided functor to evaluate force
-			m_force = m_force_fun ? (*m_force_fun)(time, pressureH, m_areaH, this) : 0;
+			m_force = m_force_fun ? (*m_force_fun)(time, pressureH, m_areaH, pressureR, m_areaR, this) : 0;
 
 			// Add to existing force.
 			C_force += m_force * relM.pos.GetNormalized();
@@ -57,7 +61,7 @@ using namespace chrono::collision;
 		double m_areaR ;
 		double m_force;  ///< force functor double value
 		std::shared_ptr<ChFunction_Recorder> m_pressureH;
-		ChFunction* m_pressureR;
+		std::shared_ptr<ChFunction> m_pressureR;
 
 	};
 
@@ -71,10 +75,12 @@ public:
 	virtual double operator()(double time,
 		double pressureH,
 		double areaH,
+		double pressureR,
+		double areaR,
 		myHYDRactuator* link
 		)override
 	{
-		double force = pressureH * areaH; //pH*aH-pR*aR, formula for piston
+		double force = pressureH * areaH - pressureR * areaR; //pH*aH-pR*aR, formula for piston
 		return force;
 	}
 
