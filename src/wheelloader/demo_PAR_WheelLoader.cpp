@@ -51,12 +51,14 @@
 
 // Chrono::Models header files
 #include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
+#include "chrono_models/vehicle/generic/Generic_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/generic/Generic_RigidTire.h"
 #include "chrono_models/vehicle/generic/Generic_FialaTire.h"
-// 
+// Articulated Subsystems
 #include "subsystems/Articulated_Front.h"
 #include "subsystems/Articulated_Rear.h"
 
+#include "utilities/UtilityFunctions.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -83,7 +85,7 @@ using std::endl;
 enum TerrainType { RIGID_TERRAIN, GRANULAR_TERRAIN };
 
 // Type of terrain
-TerrainType terrain_type = GRANULAR_TERRAIN;
+TerrainType terrain_type = RIGID_TERRAIN;
 // Type of tire model (RIGID or FIALA)
 TireModelType tire_model = TireModelType::FIALA;// Remember to call terrain.Synchronize(..) for FIALA tire_model
 
