@@ -166,7 +166,6 @@ void Articulated_Rear::Synchronize(double time, double steering, double braking,
 // STEERING
 	    double max_angle = CH_C_PI / 6;
 		auto fun = std::static_pointer_cast<ChFunction_Const>(m_joint->Get_rot_funct()); 
-		//GetLog() << "h : "<<m_front->GetBody()->GetSystem()->GetStep() << "\n";
 		fun->Set_yconst(-max_angle * steering);
 
 // DATA DRIVER CASE throttle,brake,yaw-rate(steering)
