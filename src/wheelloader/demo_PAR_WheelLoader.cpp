@@ -512,6 +512,7 @@ int main(int argc, char* argv[]) {
 		double steering_input = driver.GetSteering();
 		double braking_input = driver.GetBraking();
 		powertrain_torque = powertrain.GetOutputTorque();
+		double gear_input = gear->Get_y(time);
 
 		tire_front_forces[0] = tire_FL->GetTireForce();
 		tire_front_forces[1] = tire_FR->GetTireForce();
@@ -564,6 +565,8 @@ int main(int argc, char* argv[]) {
 		tire_RL->Synchronize(time, wheel_RL, terrain);
 		tire_RR->Synchronize(time, wheel_RR, terrain);
 
+		// Select Gear
+		powertrain.SetSelectedGear(gear_input);
 		powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
 		front_side.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_front_forces);
