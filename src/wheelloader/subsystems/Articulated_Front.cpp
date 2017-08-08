@@ -30,14 +30,14 @@ using namespace chrono::vehicle::generic;
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double Articulated_Chassis::m_mass = 2000;
-const ChVector<> Articulated_Chassis::m_inertiaXX(100, 400, 500);
+const double Articulated_Chassis::m_mass = 7000;
+const ChVector<> Articulated_Chassis::m_inertiaXX(400, 800, 900);
 const ChVector<> Articulated_Chassis::m_inertiaXY(0, 0, 0);
-const ChVector<> Articulated_Chassis::m_COM_loc(0, 0, 0.4);
+const ChVector<> Articulated_Chassis::m_COM_loc(0, 0, 2.0);
 
 const ChCoordsys<> Articulated_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
-const ChVector<> Articulated_Chassis::m_offset(-1.0, 0, 0.1);
+const ChVector<> Articulated_Chassis::m_offset(-1.0, 0, 0.5);
 
 // -----------------------------------------------------------------------------
 // Chassis of the front side of the articulated vehicle
