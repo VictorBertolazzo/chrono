@@ -149,7 +149,13 @@ int main(int argc, char* argv[]) {
 	spring_2->AddAsset(col_2);
 	spring_2->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
 
-    // Create the Irrlicht application
+	ChMatrix33<> rot_prism_2;		rot_prism_2.Set_A_axis(VECT_X,VECT_Z,-VECT_Y);
+	ChMatrix33<> rot_prism_2no;		rot_prism_2no.Set_A_axis(VECT_X, VECT_Y, VECT_Z);
+	// Look at the effect on BLUE body
+	auto prism_2 = std::make_shared<ChLinkLockPrismatic>();
+	prism_2->Initialize(body_2, ground, false, ChCoordsys<>(body_2->GetPos() + ChVector<>(0, -1, 0), rot_prism_2.Get_A_quaternion()), ChCoordsys<>(body_2->GetPos() + ChVector<>(0, +1, 0), rot_prism_2.Get_A_quaternion()));
+	system.AddLink(prism_2);
+	// Create the Irrlicht application
     // -------------------------------
 
     ChIrrApp application(&system, L"ChBodyAuxRef demo", core::dimension2d<u32>(800, 600), false, true);
