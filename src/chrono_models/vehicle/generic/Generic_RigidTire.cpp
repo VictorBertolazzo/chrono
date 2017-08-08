@@ -26,8 +26,8 @@ namespace generic {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Generic_RigidTire::m_radius = 0.3099;
-const double Generic_RigidTire::m_width = 0.235;
+	const double Generic_RigidTire::m_radius = 0.5 * 63.5 * 0.0254;//0.3099;
+	const double Generic_RigidTire::m_width =        23.6 * 0.0254;//0.235;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
