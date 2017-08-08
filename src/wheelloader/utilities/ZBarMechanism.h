@@ -555,7 +555,32 @@ class MyWheelLoader {
 		auto lforce = std::make_shared<myHYDRforce>();
 		
 		
-		// Using only the pneumatic actuator, weight of the arms makes them oscillating like a pendulum, hence real pressures are not enough to lift the system.
+
+		// Formulation for a different system-Add more bodies and constraints.
+		
+		/*auto lift_cyl = std::shared_ptr<ChBody>(system.NewBody());
+		system.AddBody(lift_cyl);
+		lift_cyl->SetPos(PIS_ch2lift);
+
+		auto lift_pis = std::shared_ptr<ChBody>(system.NewBody());
+		system.AddBody(lift_pis);
+		lift_pis->SetPos(INS_ch2lift);
+
+		auto rev_A = std::make_shared<ChLinkLockRevolute>();
+		system.AddLink(rev_A);
+		rev_A->Initialize(lift_cyl,chassis,ChCoordsys<>(PIS_ch2lift,z2y >> QUNIT));
+
+		auto rev_D = std::make_shared<ChLinkLockRevolute>();
+		system.AddLink(rev_D);
+		rev_D->Initialize(lift_pis,lift,ChCoordsys<>(INS_ch2lift,z2y >> QUNIT));
+
+		auto lift_prism = std::make_shared<ChLinkLockPrismatic>();
+		system.AddLink(lift_prism);
+		lift_prism->Initialize(lift_pis, lift_cyl, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot22.Get_A_quaternion()));
+*/
+
+		// Pneum Act:, weight of the arms makes them oscillating like a pendulum, hence real pressures are not enough to lift the system.
+
 		lin_ch2lift = std::make_shared<myHYDRactuator>();
 		lin_ch2lift->SetName("linear_chassis2lift");// ChLinkMarkers child, force applied on slave m1
 		lin_ch2lift->Initialize(lift, chassis, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot22.Get_A_quaternion()));//m2 is the master
