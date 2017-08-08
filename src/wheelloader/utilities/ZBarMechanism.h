@@ -584,23 +584,24 @@ class MyWheelLoader {
 		lin_ch2lift = std::make_shared<myHYDRactuator>();
 		lin_ch2lift->SetName("linear_chassis2lift");// ChLinkMarkers child, force applied on slave m1
 		lin_ch2lift->Initialize(lift, chassis, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot22.Get_A_quaternion()));//m2 is the master
-		lin_ch2lift->SetAreaH(CH_C_1_PI / 4 * pow(.130,2));// Head Side, Diameter: 130mm
-		lin_ch2lift->SetAreaR(CH_C_1_PI / 4 * ( pow(.130, 2) - pow(.080,2)));// Piston Rod, Diameter: 80mm
-		lin_ch2lift->Set_HYDRforce(lforce);
-		ChForce force;
+		lin_ch2lift->SetAreaH(CH_C_PI / 4 * pow(.130,2));// Head Side, Diameter: 130mm
+		lin_ch2lift->SetAreaR(CH_C_PI / 4 * ( pow(.130, 2) - pow(.080,2)));// Piston Rod, Diameter: 80mm
+		lin_ch2lift->Set_HYDRforce(lforce);// CH_C_1_PI was wrong!
 		lin_ch2lift->Set_PressureH(lhpressure);
 		lin_ch2lift->Set_PressureR(lrpressure);
 		// Attach a visualization asset.
 		lin_ch2lift->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
+		system.AddLink(lin_ch2lift);
+		
 #else
 		lin_ch2lift = std::make_shared<ChLinkLinActuator>();
 		lin_ch2lift->SetName("linear_chassis2lift");
-		lin_ch2lift->Initialize(lift, chassis, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot11.Get_A_quaternion()));//m2 is the master
+		lin_ch2lift->Initialize(lift, chassis, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot22.Get_A_quaternion()));//m2 is the master
 		lin_ch2lift->Set_lin_offset(Vlength(INS_ch2lift - PIS_ch2lift));
 		// temporary piston law for chassis2lift actuator -> it'll be set constant by default and changeable by accessor
 		// Note : it is as displacement law
 		auto leggel1 = std::make_shared<ChFunction_Const>();
-		auto leggel2 = std::make_shared<ChFunction_Ramp>(); leggel2->Set_ang(+.05);
+		auto leggel2 = std::make_shared<ChFunction_Ramp>(); leggel2->Set_ang(+.015);
 		auto leggel3 = std::make_shared<ChFunction_Const>();
 		auto lift_law = std::make_shared<ChFunction_Sequence>(); lift_law->InsertFunct(leggel1, ta1, 1, true); lift_law->InsertFunct(leggel2, ta2 - ta1, 1., true); lift_law->InsertFunct(leggel3, ta3 - ta2, 1., true);
 		auto lift_law_test = std::make_shared<ChFunction_Sequence>();
@@ -622,10 +623,10 @@ class MyWheelLoader {
 		lift_law_testing->Set_yconst(Vlength(VNULL));
 		// end test_law
 
-		lin_ch2lift->Set_dist_funct(lift_law_sine);
+		lin_ch2lift->Set_dist_funct(lift_law);
+		system.Add(lin_ch2lift);
 #endif
 
-		system.AddLink(lin_ch2lift);
 	}
 	// Destructor
 	~MyWheelLoader(){}
