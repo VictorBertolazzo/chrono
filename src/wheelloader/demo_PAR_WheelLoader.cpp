@@ -136,11 +136,11 @@ int threads = 20;
 bool thread_tuning = false;
 
 // Total simulation duration.
-double time_end = 7;
+double time_end = 105;
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-double time_hold = 0.2;
+double time_hold = 0.0;
 
 // Solver parameters
 double time_step = 1e-3;  // 2e-4;
@@ -205,25 +205,6 @@ double CreateParticles(ChSystem* system) {
 	return center.z();
 }
 
-// =============================================================================
-// Utility function for displaying an ASCII progress bar for the quantity x
-// which must be a value between 0 and n. The width 'w' represents the number
-// of '=' characters corresponding to 100%.
-
-void progressbar(unsigned int x, unsigned int n, unsigned int w = 50) {
-	if ((x != n) && (x % (n / 100 + 1) != 0))
-		return;
-
-	float ratio = x / (float)n;
-	unsigned int c = (unsigned int)(ratio * w);
-
-	std::cout << std::setw(3) << (int)(ratio * 100) << "% [";
-	for (unsigned int x = 0; x < c; x++)
-		std::cout << "=";
-	for (unsigned int x = c; x < w; x++)
-		std::cout << " ";
-	std::cout << "]\r" << std::flush;
-}
 
 // =============================================================================
 int main(int argc, char* argv[]) {
