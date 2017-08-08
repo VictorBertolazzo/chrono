@@ -28,6 +28,25 @@ using namespace chrono::collision;
 				) = 0;
 		};
 
+		void Initialize(std::shared_ptr<ChBody> body1,
+			std::shared_ptr<ChBody> body2,
+			bool pos_are_relative,
+			ChCoordsys<> pos1,
+			ChCoordsys<> pos2) {
+			// First, initialize as all constraint with markers.
+			// In this case, create the two markers also!.
+			ChLinkMarkers::Initialize(body1, body2, CSYSNORM);
+
+			if (pos_are_relative) {
+				marker1->Impose_Rel_Coord(ChCoordsys<>(pos1.pos,pos1.rot));
+				marker2->Impose_Rel_Coord(ChCoordsys<>(pos2.pos, pos2.rot));
+			}
+			else {
+				marker1->Impose_Abs_Coord(ChCoordsys<>(pos1.pos, pos1.rot));
+				marker2->Impose_Abs_Coord(ChCoordsys<>(pos2.pos, pos2.rot));
+			}
+
+		}
 		void SetAreaH(double areaH){ m_areaH = areaH; }
 		void SetAreaR(double areaR){ m_areaR = areaR; }
 		double GetAreaH(){ return m_areaH; }
