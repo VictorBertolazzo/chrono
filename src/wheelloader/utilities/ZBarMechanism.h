@@ -413,19 +413,19 @@ class MyWheelLoader {
 		// Revolute Joint between the rod body and link, last of the three joints interesting the rod , rear joint of the two concerning the link.
 		rev_rod2link = std::make_shared<ChLinkLockRevolute>();
 		rev_rod2link->SetName("revolute_rod2link");
-		ChMatrix33<> rotb44;
+		ChMatrix33<> rotb44; rotb44.Set_A_axis(VECT_X,VECT_Y,VECT_Z);
 		rev_rod2link->Initialize(link, rod, ChCoordsys<>(POS_rod2link, z2y >> rotb44.Get_A_quaternion()));		// z-dir default rev axis is rotated on y-dir 
 		system.AddLink(rev_rod2link);
 		// LIFT-BUCKET revjoint
 		rev_lift2bucket = std::make_shared<ChLinkLockRevolute>();
 		rev_lift2bucket->SetName("revolute_lift2bucket");
-		ChMatrix33<> rotb1;
+		ChMatrix33<> rotb1; rotb1.Set_A_axis(VECT_X, VECT_Y, VECT_Z);
 		rev_lift2bucket->Initialize(bucket, lift, ChCoordsys<>(POS_lift2bucket, z2y >> rotb1.Get_A_quaternion()));	// z-dir default rev axis is rotated on y-dir
 		system.AddLink(rev_lift2bucket);
 		// LINK-BUCKET revjoint
 		rev_link2bucket = std::make_shared<ChLinkLockRevolute>();
 		rev_link2bucket->SetName("revolute_link2bucket");
-		ChMatrix33<> rotb2;
+		ChMatrix33<> rotb2; rotb2.Set_A_axis(VECT_X, VECT_Y, VECT_Z);
 		rev_link2bucket->Initialize(bucket, link, ChCoordsys<>(POS_link2bucket, z2y >> rotb2.Get_A_quaternion()));	// z-dir default rev axis is rotated on y-dir
 		system.AddLink(rev_link2bucket);
 
@@ -457,7 +457,6 @@ class MyWheelLoader {
 		//ChFunction_Recorder pressure; pressure.AddPoint(0., 1);
 		auto thpressure = std::make_shared<ChFunction_Recorder>(); thpressure->AddPoint(0., 3.8167e5);
 		auto trpressure = std::make_shared<ChFunction_Recorder>(); trpressure->AddPoint(0., 3.8167e5);
-		//ChFunction_Sine pressure; pressure.Set_freq(1.); pressure.Set_amp(.2);
 		
 		// Using only the pneumatic actuator, weight of the arms makes them oscillating like a pendulum, hence real pressures are not enough to lift the system.
 		lin_lift2rod = std::make_shared<myHYDRactuator>();
@@ -500,7 +499,7 @@ class MyWheelLoader {
 		tilt_law_testing->Set_yconst(Vlength(VNULL));
 		// end test_law
 		
-		lin_lift2rod->Set_dist_funct(tilt_law_testing);
+		lin_lift2rod->Set_dist_funct(tilt_law_test);
 		// Asset for the linear actuator
 		auto bp_asset = std::make_shared<ChPointPointSegment>();				//asset
 		lin_lift2rod->AddAsset(bp_asset);
