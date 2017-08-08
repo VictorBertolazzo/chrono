@@ -383,20 +383,21 @@ int main(int argc, char* argv[]) {
 			// CHASSIS-GROUND prismatic+hydractuator
 
 			// CHASSIS-GROUND prismatic+linactuator
-						auto prism_fix2ch = std::make_shared<ChLinkLockPrismatic>();
-						prism_fix2ch->SetName("prismatic_ground2chassis");
-						prism_fix2ch->Initialize(mywl->chassis, ground, ChCoordsys<>(COG_chassis, z2x));
-						system->AddLink(prism_fix2ch);
-						auto lin_fix2ch = std::make_shared<ChLinkLinActuator>();
-						prism_fix2ch->SetName("linear_ground2chassis");
-						lin_fix2ch->Initialize(mywl->chassis, ground, false, ChCoordsys<>(COG_chassis, z2x), ChCoordsys<>(COG_chassis, z2x));//m2 is the master
-						lin_fix2ch->Set_lin_offset(Vlength(VNULL));
-						system->AddLink(lin_fix2ch);
-						auto chassis_law = std::make_shared<ChFunction_Ramp>();
-						chassis_law->Set_ang(.00);//it'll act as the chassis speed
-						lin_fix2ch->Set_dist_funct(chassis_law);
+						//auto prism_fix2ch = std::make_shared<ChLinkLockPrismatic>();
+						//prism_fix2ch->SetName("prismatic_ground2chassis");
+						//prism_fix2ch->Initialize(mywl->chassis, ground, ChCoordsys<>(COG_chassis, z2x));
+						//system->AddLink(prism_fix2ch);
+						//auto lin_fix2ch = std::make_shared<ChLinkLinActuator>();
+						//prism_fix2ch->SetName("linear_ground2chassis");
+						//lin_fix2ch->Initialize(mywl->chassis, ground, false, ChCoordsys<>(COG_chassis, z2x), ChCoordsys<>(COG_chassis, z2x));//m2 is the master
+						//lin_fix2ch->Set_lin_offset(Vlength(VNULL));
+						//system->AddLink(lin_fix2ch);
+						//auto chassis_law = std::make_shared<ChFunction_Ramp>();
+						//chassis_law->Set_ang(.00);//it'll act as the chassis speed
+						//lin_fix2ch->Set_dist_funct(chassis_law);
 						
 				
+						mywl->chassis->SetBodyFixed(true);
 			//// CHASSIS-GROUND prismatic+linactuator
 						//auto prism_fix2ch = std::make_shared<ChLinkLockPrismatic>();
 						//prism_fix2ch->SetName("prismatic_ground2chassis");
