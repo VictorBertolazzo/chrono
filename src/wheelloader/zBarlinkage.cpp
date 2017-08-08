@@ -436,9 +436,10 @@ int main(int argc, char* argv[]) {
 											   // Let the Irrlicht application convert the visualization assets.
 	//application->GetSceneManager()->getActiveCamera()->bindTargetAndRotation(true);
 	//application->GetSceneManager()->getActiveCamera()->setRotation(irr::core::vector3df(0,0,0));
-		// Apply Camera Rotation
-		irr::scene::ICameraSceneNode* camera = application->GetSceneManager()->addCameraSceneNode(application->GetSceneManager()->getRootSceneNode(), core::vector3df(+2.5, +4., 0), core::vector3df(2., 0, 0));
-		camera->setUpVector(core::vector3df(0, 0, 1));
+
+	//// Apply Camera Rotation
+		//irr::scene::ICameraSceneNode* camera = application->GetSceneManager()->addCameraSceneNode(application->GetSceneManager()->getRootSceneNode(), core::vector3df(+2.5, +4., 0), core::vector3df(2., 0, 0));
+		//camera->setUpVector(core::vector3df(0, 0, 1));
 
 	//application->GetSceneManager()->getActiveCamera()->setUpVector(core::vector3df(0, 0, 1));
 	application->AssetBindAll();
