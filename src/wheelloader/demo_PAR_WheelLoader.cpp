@@ -414,6 +414,13 @@ int main(int argc, char* argv[]) {
 	//ChDataDriver driver(front_side, vehicle::GetDataFile("generic/driver/Sample_Manuever.txt"));
 	driver.Initialize();
 
+	// Create Selected Gear Time Series-- Test file : WL_SelectedGear.dat
+	std::vector<TimeSeries> SelectedGear;
+	ReadFile("../data/WL_SelectedGear.dat", SelectedGear);
+	auto gear = std::make_shared<ChFunction_Recorder>();
+	for (int i = 0; i < SelectedGear.size(); i++){
+		gear->AddPoint(SelectedGear[i].mt, SelectedGear[i].mv);
+	}
 
 
 	// Create and initialize the powertrain system
