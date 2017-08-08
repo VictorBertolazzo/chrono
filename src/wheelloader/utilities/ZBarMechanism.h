@@ -358,11 +358,11 @@ class MyWheelLoader {
 		system.AddBody(bucket);
 		bucket->SetName("benna");
 		bucket->SetIdentifier(4);
-		bucket->SetMass(1200.0);//not confirmed data
-		bucket->SetInertiaXX(ChVector<>(200, 500, 200));//not confirmed data
+		bucket->SetMass(1305.0);//confirmed data
+		bucket->SetInertiaXX(ChVector<>(200, 800, 200));//not confirmed data
 		bucket->SetPos(POS_lift2bucket);
 		//bucket->SetFrame_COG_to_REF(ChFrame<> (bucket->GetFrame_REF_to_abs().GetInverse() * COG_bucket,QUNIT));
-		bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(.0, .0, .0), QUNIT));//tentative
+		bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(.05, .0, .02), QUNIT));//tentative
 		// Create contact geometry.
 		bucket->SetCollide(true);
 		bucket->GetCollisionModel()->ClearModel();
@@ -385,7 +385,7 @@ class MyWheelLoader {
 		// CHASSIS
 		chassis = std::shared_ptr<ChBody>(system.NewBody());
 		system.AddBody(chassis);
-		chassis->SetBodyFixed(false);//temporary
+		chassis->SetBodyFixed(true);//temporary
 		chassis->SetName("chassis");
 		chassis->SetIdentifier(0);
 		chassis->SetMass(2000.0);
@@ -394,7 +394,7 @@ class MyWheelLoader {
 		chassis->SetInertiaXX(ChVector<>(500., 1000., 500.));
 		// visualization properties
 		auto chassis_asset = std::make_shared<ChSphereShape>();//asset
-		chassis_asset->GetSphereGeometry().rad = .15;//asset
+		chassis_asset->GetSphereGeometry().rad = .05;//asset
 		chassis->AddAsset(chassis_asset);
 
 		
