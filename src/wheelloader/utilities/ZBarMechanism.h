@@ -516,12 +516,29 @@ class MyWheelLoader {
 		rot22.Set_A_axis(u22, VECT_Y, w22);
 
 #ifdef USE_PNEUMATIC
-		// Using prismatic connection oriented as pneumatic actuator, the system does not move(hyper-constrained).
+		
 
+		
+		// Prism Joint: as pneumatic actuator, the system does not move(hyper-constrained).
+		
 		//auto prism_lin_ch2lift = std::make_shared<ChLinkLockPrismatic>();
 		//prism_lin_ch2lift->Initialize(lift, chassis, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot22.Get_A_quaternion()));//m2 is the master
 		//system.AddLink(prism_lin_ch2lift);
 
+		// Spring Case: memory violation, not able to fix it
+
+		/*MySpringForce force;
+
+		auto spring_2 = std::make_shared<ChLinkSpringCB>();
+		spring_2->Initialize(lift, chassis, true, INS_ch2lift, PIS_ch2lift, false, 1.5);
+		spring_2->RegisterForceFunctor(&force);
+		system.AddLink(spring_2);
+		//// Attach a visualization asset.
+		//spring_2->AddAsset(std::make_shared<ChColorAsset>(ChColor(0, 0, 0.6f)));
+		//spring_2->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
+		*/
+
+		// Hydraulic Force calculation-input
 		std::vector<TimeSeries> ReadHeadPressure;
 		ReadPressureFile("../data/HeadLiftPressure.dat",ReadHeadPressure);
 		auto lhpressure = std::make_shared<ChFunction_Recorder>();
