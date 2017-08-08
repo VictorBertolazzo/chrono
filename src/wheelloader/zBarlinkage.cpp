@@ -32,7 +32,8 @@
 #include "chrono_opengl/ChOpenGLWindow.h"
 // Custom functions 
 #include "utilities/ZBarMechanism.h"
-
+// Chrono
+#include "chrono/physics/ChSystemNSC.h"
 
 
 // Use the namespaces of Chrono
@@ -49,7 +50,8 @@ using namespace irr::io;
 using namespace irr::gui;
 
 // Define Flag in order to decide which contact method algorithm use:NSC(DVI) or SMC(DEM)
-#define USE_PENALTY
+//#define USE_PENALTY
+
 // Enumerator used for creating the closing caps of the bucket
 enum BucketSide { LEFT, RIGHT };
 int main(int argc, char* argv[]) {
@@ -74,8 +76,9 @@ int main(int argc, char* argv[]) {
 	ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 	system = sys;
 #else
-	ChSystem system;
+	ChSystemNSC* sys = new ChSystemNSC;
 	ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
+	system = sys;
 #endif
 
 	// Set the gravity acceleration
