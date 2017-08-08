@@ -60,18 +60,18 @@ Articulated_Rear::Articulated_Rear(std::shared_ptr<Articulated_Chassis> front) :
 
     auto box = std::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(1.0, 1.0, 0.2));
-    box->GetBoxGeometry().Pos = ChVector<>(0.07, 0, 0.1);
+    box->GetBoxGeometry().Pos = ChVector<>(0.07, 0, m_offset.z());
     m_chassis->AddAsset(box);
 
     auto cyl1 = std::make_shared<ChCylinderShape>();
     cyl1->GetCylinderGeometry().rad = 0.05;
-    cyl1->GetCylinderGeometry().p1 = ChVector<>(0.45, 0.45, 0.1);
+	cyl1->GetCylinderGeometry().p1 = ChVector<>(0.45, 0.45, m_offset.z());
     cyl1->GetCylinderGeometry().p2 = m_offset;
     m_chassis->AddAsset(cyl1);
 
     auto cyl2 = std::make_shared<ChCylinderShape>();
     cyl2->GetCylinderGeometry().rad = 0.05;
-    cyl2->GetCylinderGeometry().p1 = ChVector<>(0.45, -0.45, 0.1);
+	cyl2->GetCylinderGeometry().p1 = ChVector<>(0.45, -0.45, m_offset.z());
     cyl2->GetCylinderGeometry().p2 = m_offset;
     m_chassis->AddAsset(cyl2);
 
