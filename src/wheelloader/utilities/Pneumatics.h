@@ -104,3 +104,49 @@ public:
 	}
 
 };
+
+class myPneumActuator : public ChLinkSpringCB{
+public:
+	myPneumActuator() : m_rest_length(0), m_force(0), m_force_fun(NULL) {};
+	myPneumActuator(const myHYDRactuator& other);
+	virtual ~myPneumActuator() {}
+	class ForceFunctor : ChLinkSpringCB::ForceFunctor{
+	public:
+		virtual ~ForceFunctor() {}
+
+		/// Calculate and return the general spring-damper force at the specified configuration.
+		virtual double operator()(double time,          ///< current time
+			double rest_length,   ///< undeformed length
+			double length,        ///< current length
+			double vel,           ///< current velocity (positive when extending)
+			myPneumActuator* link  ///< back-pointer to associated link
+			){
+			double force = 0;
+			return force;
+		}
+	};
+
+	myPneumActuator::ForceFunctor* getForceFunctor() const { return m_force_fun; }
+	void RegisterForceFunctor(ForceFunctor* functor){ m_force_fun = functor; }
+
+	void UpdateForces(double time) override{
+		// Allow the base class to update itself (possibly adding its own forces)
+		ChLinkMarkers::UpdateForces(time);
+
+		// Get the force functor
+		auto force_fun = getForceFunctor();
+		// Invoke the provided functor to evaluate force
+		m_force = force_fun ? (*force_fun)(time, m_rest_length, dist, dist_dt, this) : 0;
+
+		// Add to existing force.
+		C_force += m_force * relM.pos.GetNormalized();
+
+
+	};
+
+public:
+	ForceFunctor* m_force_fun;  ///< functor for force calculation
+	double m_rest_length;
+	double m_force;
+
+};
