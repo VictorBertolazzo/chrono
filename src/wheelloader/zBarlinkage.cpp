@@ -94,6 +94,14 @@ int main(int argc, char* argv[]) {
 	ground->SetBodyFixed(true);
 	ground->SetIdentifier(-1);
 	ground->SetName("ground");
+	//ground->SetMaterialSurface(mat_g);
+	ground->GetCollisionModel()->ClearModel();
+	// Bottom box
+	utils::AddBoxGeometry(ground.get(), ChVector<>(10., 10., 3.0), ChVector<>(0, 0, -3.0),
+		ChQuaternion<>(1, 0, 0, 0), true);
+	ground->GetCollisionModel()->BuildModel();
+	ground->SetCollide(true);
+
 
   //  // measures are in [m]
 		ChVector<> COG_chassis(0, 0, 1.575);							// somewhere
