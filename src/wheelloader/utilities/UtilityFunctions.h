@@ -1,6 +1,6 @@
 using namespace chrono;
 using namespace chrono::collision;
-using namespace postprocess;
+//using namespace postprocess;
 // --------------------------------------------------------------------------------------------------------
 
 #include "chrono/collision/ChCCollisionUtils.h"
