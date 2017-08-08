@@ -10,11 +10,28 @@ double ta1 = 2.00; double ta2 = 11.00; double ta3 = 15.00; double ta4 = 5.00; do
 // chassis : FWD motion til ta1, stop until ta2, then RWD til ta3;
 // ------------------CLASSES----------------------------------------------
 #include "Pneumatics.h"
+#include "chrono/physics/ChLinkSpringCB.h"
+
+double spring_coef = 50;
+double damping_coef = 1;
+
 
 // ------------------CLASSES----------------------------------------------
 class MyWheelLoader {
     public:
 	// Data
+		// Functor class implementing the force for a ChLinkSpringCB link.
+		class MySpringForce : public ChLinkSpringCB::ForceFunctor {
+			double operator()(double time,          // current time
+				double rest_length,   // undeformed length
+				double length,        // current length
+				double vel,           // current velocity (positive when extending)
+				ChLinkSpringCB* link  // back-pointer to associated link
+				) override {
+				double force = -spring_coef * (length - rest_length) - damping_coef * vel;
+				return force;
+			}
+		};
 
 	// Handles
 	//std::shared_ptr<ChBody> lift;
@@ -38,6 +55,7 @@ class MyWheelLoader {
 
 	ChQuaternion<> z2y;
 	ChQuaternion<> z2x;
+	ChQuaternion<> y2x;
 
 	// Utility Functions
 	enum BucketSide { LEFT, RIGHT };
@@ -202,7 +220,7 @@ class MyWheelLoader {
 		ChVector<> POS_link2bucket(POS_rod2link.x() + .718, .0, POS_rod2link.z());	//chassis piston(BUCKET LEVER) insertion abs frame--POINT [L]
 		////////////////////////////////////////////////////////COG Position Data
 		ChVector<> COG_chassis(POS_ch2lift); // somewhere not defined
-		ChVector<> COG_lift(INS_ch2lift);
+		ChVector<> COG_lift(ChVector<>(2.6/2,0.,.518/3));
 		ChVector<> COG_rod(POS_lift2rod);
 		ChVector<> COG_link(POS_rod2link);
 		ChVector<> COG_bucket(POS_lift2bucket); // not easy definition
@@ -210,7 +228,7 @@ class MyWheelLoader {
 		/// USEFUL Quaternions
 		z2y.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
 		z2x.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(0, 1, 0));
-
+		y2x.Q_from_AngAxis(CH_C_PI_2, VECT_Z);
 
 		////////////////////////--------------Create rigid bodies-------------------------------////////////////////////////////////////////
 		///////////////////////-----------------------------------------------------------------////////////////////////////////////////////
