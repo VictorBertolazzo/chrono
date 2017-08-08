@@ -237,13 +237,13 @@ class MyWheelLoader {
 		system.Add(lift);
 		lift->SetBodyFixed(false);
 		lift->SetName("lift arm");
-		lift->SetPos(POS_ch2lift);// switched to ChBodyAuxRef;//lift->SetPos(COG_lift);// COG_lift changed
+		lift->SetPos(POS_ch2lift);// switched to ChBodyAuxRef;
+// not working //		lift->SetFrame_REF_to_COG(ChFrame<>(COG_lift,ChMatrix33<>(1,0,0,0,1,0,0,0,1)).GetInverse());
 		ChVector<> u1 = (POS_lift2bucket - POS_ch2lift).GetNormalized();//switched to ChBodyAuxRef
-		//ChVector<> u1 = (POS_lift2bucket - COG_lift).GetNormalized();//
 		ChVector<> w1 = Vcross(u1, VECT_Y).GetNormalized();//overkill
 		ChMatrix33<> rot1;//no control on orthogonality
 		rot1.Set_A_axis(u1, VECT_Y, w1);
-		lift->SetRot(rot1);	//lift->SetFrame_COG_to_REF(ChFrame<>(lift->GetFrame_REF_to_abs().GetInverse() * COG_lift, QUNIT));//switched to ChBodyAuxRef
+		lift->SetRot(rot1);	//		lift->SetFrame_COG_to_REF(ChFrame<>(lift->GetFrame_REF_to_abs().GetInverse() * COG_lift, QUNIT));//switched to ChBodyAuxRef
 		lift->SetMass(928.0);
 		lift->SetInertiaXX(ChVector<>(110.2, 1986.1, 1919.3));
 		lift->SetInertiaXY(ChVector<>(0., 0., 339.6));
