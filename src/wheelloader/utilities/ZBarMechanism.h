@@ -346,6 +346,12 @@ class MyWheelLoader {
 		auto col_l1 = std::make_shared<ChColorAsset>();
 		col_l1->SetColor(ChColor(0.0f, 0.2f, 0.2f));
 		link->AddAsset(col_l1);
+		// collision model, in order to get natural link limits(abandoned).
+		link->SetCollide(true);
+		link->GetCollisionModel()->ClearModel();
+		//link->GetCollisionModel()->AddCylinder(.025, .025, Vlength(POS_rod2link - POS_link2bucket), link->GetFrame_COG_to_abs().GetInverse() * POS_rod2link, y2x >> rot4.Get_A_quaternion());
+		utils::AddCylinderGeometry(link.get(), .025, Vlength(POS_rod2link - POS_link2bucket)/2, link->GetFrame_COG_to_abs().GetInverse() * (POS_rod2link/2+POS_link2bucket/2), y2x >> rot4.Get_A_quaternion(), true);
+		link->GetCollisionModel()->BuildModel();
 
 		//	// BUCKET
 		bucket = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
