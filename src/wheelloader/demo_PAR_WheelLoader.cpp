@@ -399,10 +399,16 @@ int main(int argc, char* argv[]) {
 	rear_side.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
 	rear_side.SetWheelVisualizationType(VisualizationType::NONE);
 
-	// Create the driver system
-	// ...temporary workaround--IDEA, clamp a User Joystick here.
-	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/vehicle/M113/driver/Acceleration.txt");
+	// Create the driver system,//Future::// Keyboard-Joystick + OpenGL ?? .
+	
+	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/vehicle/M113/driver/Acceleration.txt");
 	// ChDataDriver driver(front_side, vehicle::GetDataFile("M113/driver/Acceleration.txt"));
+
+	// Steering,Throttle,Brake
+	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man.dat");
+
+	// Steering,Throttle*Dir,Brake
+	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_Dir.dat");
 
 	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/vehicle/generic/driver/Sample_Maneuver.txt");
 	//ChDataDriver driver(front_side, vehicle::GetDataFile("generic/driver/Sample_Manuever.txt"));
