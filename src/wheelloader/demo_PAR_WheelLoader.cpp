@@ -424,7 +424,9 @@ int main(int argc, char* argv[]) {
 
 
 	// Create and initialize the powertrain system
-	Generic_SimplePowertrain powertrain;
+
+	//Generic_SimplePowertrain powertrain;
+	Generic_SimpleMapPowertrain powertrain;
 	powertrain.Initialize(front_side.GetChassisBody(), front_side.GetDriveshaft());
 
 	// Create the front tires
