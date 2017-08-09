@@ -405,13 +405,15 @@ int main(int argc, char* argv[]) {
 	// ChDataDriver driver(front_side, vehicle::GetDataFile("M113/driver/Acceleration.txt"));
 
 	// Steering,Throttle,Brake
-	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man.dat");
+	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man.dat");
 
 	// Steering,Throttle*Dir,Brake
 	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_Dir.dat");
 
-	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/vehicle/generic/driver/Sample_Maneuver.txt");
-	//ChDataDriver driver(front_side, vehicle::GetDataFile("generic/driver/Sample_Manuever.txt"));
+	// No Steering, Throttle,Brake
+	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_NoSteer.dat");
+
+
 	driver.Initialize();
 
 	// Create Selected Gear Time Series-- Test file : WL_SelectedGear.dat
