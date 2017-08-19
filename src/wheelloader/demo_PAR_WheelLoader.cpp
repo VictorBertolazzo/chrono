@@ -507,6 +507,7 @@ int main(int argc, char* argv[]) {
 	double throttle_input;
 	double steering_input;
 	double braking_input;
+	double gear_input;
 	
 	while (time < time_end) {
 		// Collect output data from modules
@@ -514,7 +515,7 @@ int main(int argc, char* argv[]) {
 		double steering_input = driver.GetSteering();
 		double braking_input = driver.GetBraking();
 		powertrain_torque = powertrain.GetOutputTorque();
-		double gear_input = gear->Get_y(time);
+		gear_input = gear->Get_y(time);
 
 		tire_front_forces[0] = tire_FL->GetTireForce();
 		tire_front_forces[1] = tire_FR->GetTireForce();
