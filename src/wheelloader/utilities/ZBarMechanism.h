@@ -265,16 +265,16 @@ class MyWheelLoader {
 		lift_asset3->GetCylinderGeometry().rad = .025;
 		lift_asset3->GetCylinderGeometry().p1 = lift->GetFrame_COG_to_abs().GetInverse() * INS_ch2lift;
 		lift_asset3->GetCylinderGeometry().p2 = lift->GetFrame_COG_to_abs().GetInverse() * POS_lift2bucket;
-		lift->AddAsset(lift_asset);lift->AddAsset(lift_asset1);lift->AddAsset(lift_asset2);lift->AddAsset(lift_asset3);
+		//lift->AddAsset(lift_asset);lift->AddAsset(lift_asset1);lift->AddAsset(lift_asset2);lift->AddAsset(lift_asset3);
 		auto col_l = std::make_shared<ChColorAsset>();
 		col_l->SetColor(ChColor(0.2f, 0.0f, 0.0f));
 		lift->AddAsset(col_l);
 		geometry::ChTriangleMeshConnected lift_mesh;
-		lift_mesh.LoadWavefrontMesh(out_dir + "data/boom_mod.obj", false, false);
+		lift_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-boom.obj", false, false);
 		auto lift_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		lift_mesh_shape->SetMesh(lift_mesh);
 		lift_mesh_shape->SetName("boom");
-		//lift->AddAsset(lift_mesh_shape);
+		lift->AddAsset(lift_mesh_shape);
 
 		// collision model, in order to get natural link limits(abandoned).
 		////lift->SetCollide(true);
@@ -310,17 +310,16 @@ class MyWheelLoader {
 		rod_asset1->GetCylinderGeometry().rad = .025;
 		rod_asset1->GetCylinderGeometry().p1 = rod->GetFrame_COG_to_abs().GetInverse() * POS_lift2rod;
 		rod_asset1->GetCylinderGeometry().p2 = rod->GetFrame_COG_to_abs().GetInverse() * POS_rod2link;
-		rod->AddAsset(rod_asset);
-		rod->AddAsset(rod_asset1);
+		//rod->AddAsset(rod_asset);rod->AddAsset(rod_asset1);
 		auto col_r = std::make_shared<ChColorAsset>();
 		col_r->SetColor(ChColor(0.0f, 0.0f, 0.2f));
 		rod->AddAsset(col_r);
 		geometry::ChTriangleMeshConnected rocker_mesh;
-		rocker_mesh.LoadWavefrontMesh(out_dir + "data/rockerarm_mod.obj", false, false);// file not present
+		rocker_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-linkage.obj", false, false);// 
 		auto rocker_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		rocker_mesh_shape->SetMesh(rocker_mesh);
-		rocker_mesh_shape->SetName("boom");
-		//rod->AddAsset(rocker_mesh_shape);//temporary
+		rocker_mesh_shape->SetName("rocker");
+		rod->AddAsset(rocker_mesh_shape);//temporary
 		// collision model
 
 		//	// LINK
@@ -346,6 +345,12 @@ class MyWheelLoader {
 		auto col_l1 = std::make_shared<ChColorAsset>();
 		col_l1->SetColor(ChColor(0.0f, 0.2f, 0.2f));
 		link->AddAsset(col_l1);
+		geometry::ChTriangleMeshConnected connectingrod_mesh;
+		connectingrod_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-connectingrod.obj", false, false);// 
+		auto connectingrod_mesh_shape = std::make_shared<ChTriangleMeshShape>();
+		connectingrod_mesh_shape->SetMesh(connectingrod_mesh);
+		connectingrod_mesh_shape->SetName("connecting rod");
+		link->AddAsset(connectingrod_mesh_shape);//temporary
 		// collision model, in order to get natural link limits(abandoned).
 		link->SetCollide(true);
 		link->GetCollisionModel()->ClearModel();
@@ -363,6 +368,7 @@ class MyWheelLoader {
 		bucket->SetPos(POS_lift2bucket);
 		//bucket->SetFrame_COG_to_REF(ChFrame<> (bucket->GetFrame_REF_to_abs().GetInverse() * COG_bucket,QUNIT));
 		bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(.05, .0, .02), QUNIT));//tentative
+		//bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(1., .0, .5), QUNIT));//tentative
 		// Create contact geometry.
 		bucket->SetCollide(true);
 		bucket->GetCollisionModel()->ClearModel();
