@@ -2,10 +2,10 @@
 // Victor Bertolazzo
 
 // The mechanism consists of : lift arm, rod arm, link arm, bucket
-// They are attached to a fictitious chassis via : revjoint btw chassis and lift arm, linear actuator btw chassis and lift arm
+// They are attached to a fictitious chassis via : revjoint btw chassis and lift arm, linear actuator btw chassis and lift arm,linear actuator btw chassis and rod arm
 // The mechanism is essentially 2D even if modeled in 3D: Chrono solver takes care of redundant constraints.
 // The piston movement is modeled as a linear actuator at the moment: it could be driven either via displacement-imposed(reverse dynamics happens) and force-imposed.
-// This simple test takes care only of the displacement-imposed actuattion.
+// This simple test takes care only of the displacement-imposed actuation.
 // Only the bucket body has collision shapes, visualization shapes of the other bodies are kept simplified for a better understanding of the mechanism.
 
 
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 	ground->GetCollisionModel()->ClearModel();
 	// Bottom box
 	utils::AddBoxGeometry(ground.get(), ChVector<>(10., 10., 3.0), ChVector<>(0, 0, -3.0),
-		ChQuaternion<>(1, 0, 0, 0), true);
+		ChQuaternion<>(1, 0, 0, 0), false);
 	ground->GetCollisionModel()->BuildModel();
 	ground->SetCollide(true);
 
