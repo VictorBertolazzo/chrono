@@ -99,8 +99,8 @@ double hdimZ = 0.5;
 double hthick = 0.25;
 // Rigid terrain dimensions
 double terrainHeight = 0;
-double terrainLength = 100.0;  // size in X direction
-double terrainWidth = 100.0;   // size in Y direction
+double terrainLength = 1000.0;  // size in X direction
+double terrainWidth = 1000.0;   // size in Y direction
 
 // Parameters for granular material
 int Id_g = 100;
@@ -388,7 +388,7 @@ int main(int argc, char* argv[]) {
 	// Create the front side
 	Articulated_Front front_side(system); 
 	front_side.Initialize(ChCoordsys<>(initLoc, initRot));
-	front_side.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+	front_side.SetChassisVisualizationType(VisualizationType::MESH);
 	front_side.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
 	front_side.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
 	front_side.SetWheelVisualizationType(VisualizationType::NONE);
