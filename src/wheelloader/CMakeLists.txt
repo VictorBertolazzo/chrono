@@ -33,6 +33,7 @@ SET(MODELS
 #  demo_PAR_friction
 #  demo_VEH_ArticulatedVehicle
   demo_PAR_WheelLoader
+  demo_SEQ_WheelLoader
 #  demo_VEH_wheelloader
   hydraulic_force
   iArmlinkage
@@ -100,12 +101,12 @@ foreach(PROGRAM ${MODELS})
 
   message(STATUS "...add ${PROGRAM}")
 
-  if (${PROGRAM} MATCHES "demo_PAR_WheelLoader")
+#  if (${PROGRAM} MATCHES "demo_PAR_WheelLoader")
 		add_executable(${PROGRAM}  "${PROGRAM}.cpp"  ${UTILITIES} ${MODEL_FILES})
-  else()
-		add_executable(${PROGRAM}  "${PROGRAM}.cpp"  ${UTILITIES})
+#  else()
+#		add_executable(${PROGRAM}  "${PROGRAM}.cpp"  ${UTILITIES})
 
-  endif()
+#  endif()
  
   source_group(""  FILES "${PROGRAM}.cpp")
 
