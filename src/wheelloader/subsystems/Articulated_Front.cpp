@@ -63,6 +63,9 @@ Articulated_Chassis::Articulated_Chassis(const std::string& name, bool fixed) : 
     m_vis_boxes.push_back(box);
     m_vis_cylinders.push_back(cyl1);
     m_vis_cylinders.push_back(cyl2);
+
+	m_has_mesh = true;
+	m_vis_mesh_file = "./L550-front_body.obj";
 }
 
 ChVector<> Articulated_Chassis::GetConnectionPoint() const {
