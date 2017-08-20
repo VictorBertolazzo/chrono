@@ -21,6 +21,8 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
+#include "chrono/physics/ChLinkBushing.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/generic/Generic_RigidPinnedAxle.h"
@@ -130,6 +132,22 @@ void Articulated_Rear::Initialize() {
     m_joint->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
     m_joint->Initialize(m_chassis, m_front->GetBody(), ChCoordsys<>(connection, rot));
     m_chassis->GetSystem()->AddLink(m_joint);
+
+	ChMatrixNM<double, 6, 6> K_matrix;
+	ChMatrixNM<double, 6, 6> R_matrix;
+
+	for (unsigned int ii = 0; ii < 6; ii++) {
+		K_matrix(ii, ii) = 95000.0;
+		R_matrix(ii, ii) = 100.0;
+	}
+
+	// Create bushing element acting on selected degrees of freedoms
+	// ChLinkBushing::Mount: All six dofs defined by stiffness/damping matrices
+
+	auto my_linkbushing = std::make_shared<ChLinkBushing>(ChLinkBushing::Mount);
+	my_linkbushing->Initialize(m_chassis, m_front->GetBody(), ChCoordsys<>(connection,rot),
+		K_matrix, R_matrix);
+	m_chassis->GetSystem()->AddLink(my_linkbushing);
 }
 
 // -----------------------------------------------------------------------------
