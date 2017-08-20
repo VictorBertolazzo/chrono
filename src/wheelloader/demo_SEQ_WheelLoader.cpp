@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
 		throttle_input = driver.GetThrottle();
 		steering_input = driver.GetSteering();
 		braking_input = driver.GetBraking();
-		powertrain_torque = powertrain.GetOutputTorque();
+		powertrain_torque = powertrain.GetOutputTorque(); // =0 since ShaftsPowertrain is directly connected to the vehicle's driveline
 		gear_input = gear->Get_y(time);
 
 		tire_front_forces[0] = tire_FL->GetTireForce();
@@ -289,7 +289,7 @@ int main(int argc, char* argv[]) {
 		tire_RR->Synchronize(time, wheel_RR, terrain);
 
 		// Select Gear
-		//powertrain.SetSelectedGear(gear_input);
+		powertrain.SetSelectedGear(gear_input);
 		powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
 		front_side.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_front_forces);
@@ -298,7 +298,7 @@ int main(int argc, char* argv[]) {
 #ifdef USE_KEYBOARD
 		app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 #else
-		app.Synchronize("message for HUD", steering_input, throttle_input, braking_input);
+		app.Synchronize("Message HUD", steering_input, throttle_input, braking_input);
 #endif
 		// Advance simulation for one timestep for all modules
 		driver.Advance(step_size);
