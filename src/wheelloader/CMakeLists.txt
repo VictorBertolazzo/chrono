@@ -60,6 +60,8 @@ SET(MODELS
     subsystems/Articulated_Rear.cpp
 	subsystems/WL_ShaftsPowertrain.h
 	subsystems/WL_ShaftsPowertrain.cpp
+	subsystems/WL_FialaTire.h
+	subsystems/WL_FialaTire.cpp
 )
  SET(UTILITIES
  utilities/UtilityFunctions.h

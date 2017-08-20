@@ -51,6 +51,8 @@
 
 #include "subsystems/WL_ShaftsPowertrain.h"
 
+#include "subsystems/WL_FialaTire.h"
+
 #include "utilities/UtilityFunctions.h"
 
 
@@ -128,8 +130,8 @@ int main(int argc, char* argv[]) {
 		tire_FR = std::unique_ptr<ChTire>(new Generic_RigidTire("FR"));
 		break;
 	case TireModelType::FIALA:
-		tire_FL = std::unique_ptr<ChTire>(new Generic_FialaTire("FL"));
-		tire_FR = std::unique_ptr<ChTire>(new Generic_FialaTire("FR"));
+		tire_FL = std::unique_ptr<ChTire>(new WL_FialaTire("FL"));
+		tire_FR = std::unique_ptr<ChTire>(new WL_FialaTire("FR"));
 		break;
 	default:
 		std::cout << "Tire type not supported!" << std::endl;
@@ -150,8 +152,8 @@ int main(int argc, char* argv[]) {
 		tire_RR = std::unique_ptr<ChTire>(new Generic_RigidTire("RR"));
 		break;
 	case TireModelType::FIALA:
-		tire_RL = std::unique_ptr<ChTire>(new Generic_FialaTire("RL"));
-		tire_RR = std::unique_ptr<ChTire>(new Generic_FialaTire("RR"));
+		tire_RL = std::unique_ptr<ChTire>(new WL_FialaTire("RL"));
+		tire_RR = std::unique_ptr<ChTire>(new WL_FialaTire("RR"));
 		break;
 	default:
 		std::cout << "Tire type not supported!" << std::endl;
