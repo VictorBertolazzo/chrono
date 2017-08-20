@@ -187,7 +187,11 @@ int main(int argc, char* argv[]) {
 	driver.SetThrottleDelta(render_step_size / throttle_time);
 	driver.SetBrakingDelta(render_step_size / braking_time);
 #else
-	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_NoSteer.dat");
+	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_NoSteer.dat");
+	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_RecYaw.dat");
+	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_ddYaw.dat");
+
+
 #endif
 
 	driver.Initialize();
