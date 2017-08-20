@@ -36,6 +36,7 @@
 #include "chrono_models/vehicle/generic/Generic_RigidTire.h"
 #include "chrono_models/vehicle/generic/Generic_FialaTire.h"
 
+
 // Chrono utility header files
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsCreators.h"
@@ -48,6 +49,7 @@
 #include "subsystems/Articulated_Front.h"
 #include "subsystems/Articulated_Rear.h"
 
+#include "subsystems/WL_ShaftsPowertrain.h"
 
 #include "utilities/UtilityFunctions.h"
 
@@ -70,8 +72,8 @@ TireModelType tire_model = TireModelType::FIALA;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
-double terrainLength = 100.0;  // size in X direction
-double terrainWidth = 100.0;   // size in Y direction
+double terrainLength = 1000.0;  // size in X direction
+double terrainWidth = 1000.0;   // size in Y direction
 
 // Simulation step size
 double step_size = 0.001;
@@ -81,6 +83,7 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
+
 
 // =============================================================================
 
@@ -113,7 +116,7 @@ int main(int argc, char* argv[]) {
 	terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
 
 	// Create and initialize the powertrain system
-	Generic_SimplePowertrain powertrain;
+	WL_ShaftsPowertrain powertrain;
 	powertrain.Initialize(front_side.GetChassisBody(), front_side.GetDriveshaft());
 
 	// Create the front tires
