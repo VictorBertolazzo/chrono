@@ -129,7 +129,7 @@ void Articulated_Rear::Initialize() {
     // Create the connection to the front side.
     m_joint = std::make_shared<ChLinkEngine>();
     m_joint->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
-    m_joint->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
+    m_joint->Set_eng_mode(ChLinkEngine::ENG_MODE_TORQUE);//ENG_MODE_ROTATION
     m_joint->Initialize(m_chassis, m_front->GetBody(), ChCoordsys<>(connection, rot));
     m_chassis->GetSystem()->AddLink(m_joint);
 
@@ -181,11 +181,26 @@ void Articulated_Rear::Synchronize(double time, double steering, double braking,
 	//double max_angle = CH_C_PI / 6;
  //   auto fun = std::static_pointer_cast<ChFunction_Const>(m_joint->Get_rot_funct());
  //   fun->Set_yconst(-max_angle * steering);
-// DATA DRIVER CASE throttle,brake,yaw-rate(steering)
-	double h = m_front->GetBody()->GetSystem()->GetStep();
-	auto yaw = std::static_pointer_cast<ChFunction_Const>(m_joint->Get_rot_funct());
-	double prev = yaw->Get_yconst();
-	yaw->Set_yconst(prev - CH_C_DEG_TO_RAD*steering*h);
+
+	//// DATA DRIVER CASE throttle,brake,yaw-rate(steering)
+	//double h = m_front->GetBody()->GetSystem()->GetStep();
+	//auto yaw = std::static_pointer_cast<ChFunction_Const>(m_joint->Get_rot_funct());
+	//double prev = yaw->Get_yconst();
+	//yaw->Set_yconst(prev - CH_C_DEG_TO_RAD*steering*h);
+
+	//// DATA DRIVER CASE throttle,brake,yaw reconstructed(steering)
+	//auto yaw = std::static_pointer_cast<ChFunction_Const>(m_joint->Get_rot_funct());
+	//yaw->Set_yconst(CH_C_DEG_TO_RAD*steering);
+
+	// DATA DRIVER CASE throttle,brake,d^2 yaw/ dt()
+	  // Applying the torque the joint is free to rotate and Fiala tire forces determine an unstable rotation at the beginning.
+	  // A bushing would be necessary
+	double inertia = 1;
+	auto yaw = std::static_pointer_cast<ChFunction_Const>(m_joint->Get_tor_funct());
+	yaw->Set_yconst(inertia*CH_C_DEG_TO_RAD*steering);
+
+	
+
 
 }
 
