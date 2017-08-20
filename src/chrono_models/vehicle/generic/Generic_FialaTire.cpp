@@ -38,8 +38,8 @@ Generic_FialaTire::Generic_FialaTire(const std::string& name) : ChFialaTire(name
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Generic_FialaTire::SetFialaParams() {
-	m_unloaded_radius = 0.5 * 63.5 * 0.0254;//0.3099;
-	m_width = 23.6 * 0.0254;//0.235;
+	m_unloaded_radius = 0.3099;
+	m_width = 0.235;
     m_rolling_resistance = 0.001;
     m_c_slip = 1000000;
     m_c_alpha = 45836.6236;
