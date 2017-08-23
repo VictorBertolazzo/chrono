@@ -46,6 +46,7 @@ SET(MODELS
   test_normal
   test_normal_PAR
   test_PAR_rolling_friction
+  test_scalability_sandpile
   test_SEQ_rolling_friction
   utest_PAR_linactuator
   zBarlinkage
@@ -58,6 +59,12 @@ SET(MODELS
     subsystems/Articulated_Front.cpp
     subsystems/Articulated_Rear.h
     subsystems/Articulated_Rear.cpp
+	subsystems/WL_Driveline4WD.h
+	subsystems/WL_Driveline4WD.cpp
+subsystems/WL_SimpleDriveline4WD.h
+subsystems/WL_SimpleDriveline4WD.cpp
+subsystems/WL_SimpleMapPowertrain.h
+subsystems/WL_SimpleMapPowertrain.cpp
 	subsystems/WL_ShaftsPowertrain.h
 	subsystems/WL_ShaftsPowertrain.cpp
 	subsystems/WL_FialaTire.h

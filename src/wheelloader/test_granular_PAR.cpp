@@ -117,8 +117,8 @@ double Ra_r = 3.0*radius_g;//Default Size of particles.
     // All functions are in UtilityFunctions.h file.
 // ---------------------------FUNCTIONS--------------------------------
 int main(int argc, char** argv) {
-	uint max_iteration_normal = 0;
-	uint max_iteration_sliding = 0;
+	uint max_iteration_normal = 100;
+	uint max_iteration_sliding = 100;
 	uint max_iteration_spinning = 100;
 	uint max_iteration_bilateral = 100;
 	// Create output directories.
@@ -166,8 +166,8 @@ int main(int argc, char** argv) {
 	case ChMaterialSurface::NSC: {
 										 ChSystemParallelNSC* sys = new ChSystemParallelNSC;
 										 sys->GetSettings()->solver.solver_mode = SolverMode::SPINNING;
-										 sys->GetSettings()->solver.max_iteration_normal = 0;
-										 sys->GetSettings()->solver.max_iteration_sliding = 0;
+										 sys->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+										 sys->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
 										 sys->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
 										 sys->GetSettings()->solver.alpha = 0;
 										 sys->GetSettings()->solver.contact_recovery_speed = .1;
@@ -343,14 +343,16 @@ int main(int argc, char** argv) {
 								  ChVector<> center(0, 0, 2 * r);
 
 								  for (int il = 0; il < num_layers; il++) {
-								  gen.createObjectsBox(utils::HCP_PACK, 2 * r, center, hdims);
-								  center.z() += 2 * radius_g;
+								  gen.createObjectsBox(utils::POISSON_DISK, 2 * radius_g, center, hdims);
+								  center.z() += 2 * r;
 								  // shrink uniformly the upper layer
 								  hdims.x() -= 2 * r;
 								  hdims.y() -= 2 * r;
 								  // move the center abscissa by a 1*r 
 								  // center.x() += r * pow(-1, il);
-								  if (method == ChMaterialSurface::NSC){ time_step = 0.075e-3; }
+								  if (method == ChMaterialSurface::NSC){
+									  time_step = 1e-3;//0.075e-3; 
+								  }
 								  if (radius_g == 0.05){ time_end = 20.50; }
 
 	}
