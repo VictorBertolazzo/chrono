@@ -313,14 +313,14 @@ int main(int argc, char* argv[]) {
 		steering_input = driver.GetSteering();
 		braking_input = driver.GetBraking();
 		powertrain_torque = powertrain.GetOutputTorque(); // =0 since ShaftsPowertrain is directly connected to the vehicle's driveline
-		gear_input = gear->Get_y(time);
+		gear_input = (int)gear->Get_y(time);
 
 		tire_front_forces[0] = tire_FL->GetTireForce();
 		tire_front_forces[1] = tire_FR->GetTireForce();
 		tire_rear_forces[0] = tire_RL->GetTireForce();
 		tire_rear_forces[1] = tire_RR->GetTireForce();
 
-		driveshaft_speed = front_side.GetDriveshaftSpeed();
+		driveshaft_speed = driveline->GetDriveshaftSpeed();
 
 		WheelState wheel_FL = front_side.GetWheelState(FRONT_LEFT);
 		WheelState wheel_FR = front_side.GetWheelState(FRONT_RIGHT);
