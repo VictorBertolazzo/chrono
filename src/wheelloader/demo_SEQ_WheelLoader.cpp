@@ -140,8 +140,17 @@ int main(int argc, char* argv[]) {
 	terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
 
 	// Create and initialize the powertrain system
-	WL_ShaftsPowertrain powertrain;
-	powertrain.Initialize(front_side.GetChassisBody(), front_side.GetDriveshaft());
+	// Vehicle is 4WD indeed
+	auto driveline = std::make_shared<WL_SimpleDriveline4WD>("driveline");//WL_Driveline4WD works.
+	ChSuspensionList suspensions; suspensions.resize(2);
+	suspensions[0] = front_side.GetSuspension(0); suspensions[1] =  rear_side.GetSuspension(0);
+	std::vector<int> driven_susp_indexes(2);//(ignored)
+	driveline->Initialize(front_side.GetChassisBody(), suspensions, driven_susp_indexes);
+
+	// Create and initialize the powertrain system
+	// Vehicle is 4WD indeed
+	WL_SimpleMapPowertrain powertrain;
+	powertrain.Initialize(front_side.GetChassisBody(), driveline->GetDriveshaft());
 
 	// Create the front tires
 	std::unique_ptr<ChTire> tire_FL;
