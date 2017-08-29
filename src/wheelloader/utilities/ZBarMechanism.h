@@ -36,8 +36,8 @@ class MyWheelLoader {
 	// Handles
 	//std::shared_ptr<ChBody> lift;
 	std::shared_ptr<ChBodyAuxRef> lift;
-	std::shared_ptr<ChBody> rod;
-	std::shared_ptr<ChBody> link;
+	std::shared_ptr<ChBodyAuxRef> rod;
+	std::shared_ptr<ChBodyAuxRef> link;
 	std::shared_ptr<ChBodyAuxRef> bucket;
 	std::shared_ptr<ChBody> chassis;
 
@@ -211,19 +211,28 @@ class MyWheelLoader {
 
 		ChVector<> INS_ch2lift(1.13, 0, 1.515);						// Insertion of boom piston over lift body--POINT [D]
 		ChVector<> POS_lift2bucket(2.26, .0, .832);					//chassis piston(LIFT ARM) insertion abs frame--POINT [G]
-		ChVector<> POS_lift2rod(1.60, .0, 1.80);					//rev joint(LIFT ARM) abs frame--POINT [F]
-		  // suppose rod arm oriented parallel to vertical axis(assumption, useful to define initial positions)
-		ChVector<> POS_lift2lever(POS_lift2rod.x() -.2, 0, POS_lift2rod.z() + (1.267-.770));//end position actuator lift->lever--POINT [E]
 
-		ChVector<> POS_rod2link(POS_lift2rod.x() - .2, 0, POS_lift2rod.z() - (.770));		//Act lift->lever--POINT [H]
-			// same trick for link arm, parallel to ground
-		ChVector<> POS_link2bucket(POS_rod2link.x() + .718, .0, POS_rod2link.z());	//chassis piston(BUCKET LEVER) insertion abs frame--POINT [L]
-		////////////////////////////////////////////////////////COG Position Data
+		ChVector<> POS_lift2rod(1.60, .0, 1.80);//Defined in abs frame					//rev joint(LIFT ARM) abs frame--POINT [F]
+		ChVector<> POS_lift2rod_lift(1.550, .0, .518);//Defined in LIFT frame					//rev joint(LIFT ARM) abs frame--POINT [F]
+
+		// suppose rod arm oriented parallel to vertical axis(assumption, useful to define initial positions)
+		ChVector<> POS_lift2lever(POS_lift2rod.x() -.2, 0, POS_lift2rod.z() + (1.267-.770));// Defined in ABS frame			//end position actuator lift->lever--POINT [E]
+		ChVector<> POS_lift2lever_rod(-.497, 0,-.20 );// Defined in ROD frame														//end position actuator lift->lever--POINT [E]
+
+		ChVector<> POS_rod2link(POS_lift2rod.x() - .2, 0, POS_lift2rod.z() - (.770));//Defined in ABS frame		//Act lift->lever--POINT [H]
+		ChVector<> POS_rod2link_rod(.770, 0, -.0);// Defined in ROD frame		//Act lift->lever--POINT [H]
+
+		// same trick for link arm, parallel to ground
+		ChVector<> POS_link2bucket(POS_rod2link.x() + .718, .0, POS_rod2link.z());	// Defined in ABS frame		//chassis piston(BUCKET LEVER) insertion abs frame--POINT [L]
+		ChVector<> POS_link2bucket_link(.718, .0, 0.);	// Defined in LINK frame									//chassis piston(BUCKET LEVER) insertion abs frame--POINT [L]
+
+
+		////////////////////////////////////////////////////////COG Position Data-Relative Reference Frames Coordinates
 		ChVector<> COG_chassis(POS_ch2lift); // somewhere not defined
-		ChVector<> COG_lift(ChVector<>(2.6/2,0.,.518/3));
-		ChVector<> COG_rod(POS_lift2rod);
-		ChVector<> COG_link(POS_rod2link);
-		ChVector<> COG_bucket(POS_lift2bucket); // not easy definition
+		ChVector<> COG_lift(ChVector<>(2.6/2,0.,.518/3)); // Lift body com-relative frame
+		ChVector<> COG_rod(ChVector<>(1.267 / 2, 0., 0.));
+		ChVector<> COG_link(ChVector<>(.718/2,0.,0.));
+		ChVector<> COG_bucket(ChVector<>(.15,0.,.5)); // not easy definition
 
 		/// USEFUL Quaternions
 		z2y.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
@@ -237,13 +246,14 @@ class MyWheelLoader {
 		system.Add(lift);
 		lift->SetBodyFixed(false);
 		lift->SetName("lift arm");
-		lift->SetPos(POS_ch2lift);// switched to ChBodyAuxRef;
-// not working //		lift->SetFrame_REF_to_COG(ChFrame<>(COG_lift,ChMatrix33<>(1,0,0,0,1,0,0,0,1)).GetInverse());
+		//lift->SetPos(POS_ch2lift);// switched to ChBodyAuxRef;
 		ChVector<> u1 = (POS_lift2bucket - POS_ch2lift).GetNormalized();//switched to ChBodyAuxRef
 		ChVector<> w1 = Vcross(u1, VECT_Y).GetNormalized();//overkill
 		ChMatrix33<> rot1;//no control on orthogonality
 		rot1.Set_A_axis(u1, VECT_Y, w1);
-		lift->SetRot(rot1);	//		lift->SetFrame_COG_to_REF(ChFrame<>(lift->GetFrame_REF_to_abs().GetInverse() * COG_lift, QUNIT));//switched to ChBodyAuxRef
+		//lift->SetRot(rot1);	//		lift->SetFrame_COG_to_REF(ChFrame<>(lift->GetFrame_REF_to_abs().GetInverse() * COG_lift, QUNIT));//switched to ChBodyAuxRef
+		lift->SetFrame_REF_to_abs(ChFrame<>(POS_ch2lift, rot1));
+		lift->SetFrame_COG_to_REF(ChFrame<>(COG_lift, QUNIT));
 		lift->SetMass(928.0);
 		lift->SetInertiaXX(ChVector<>(110.2, 1986.1, 1919.3));
 		lift->SetInertiaXY(ChVector<>(0., 0., 339.6));
@@ -286,18 +296,33 @@ class MyWheelLoader {
 
 
 		// ROD
-		rod = std::shared_ptr<ChBody>(system.NewBody());
+		rod = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
 		system.Add(rod);
 		rod->SetName("rod arm");
 		rod->SetIdentifier(3);
-		//rod->SetPos(POS_lift2rod);//COG_rod
-		rod->SetPos(COG_rod);//
-		ChVector<> u3 = (POS_rod2link - POS_lift2rod).GetNormalized();
+		ChVector<> u3 = (POS_rod2link - POS_lift2rod).GetNormalized();//absolute coords
 		ChVector<> w3 = Vcross(u3, VECT_Y).GetNormalized();//overkill
 		ChMatrix33<> rot3;
 		rot3.Set_A_axis(u3, VECT_Y, w3);
-		rod->SetRot(rot3);
-		//	rod->SetFrame_COG_to_REF(ChFrame<>(rod->GetFrame_REF_to_abs().GetInverse() * COG_rod, QUNIT));//switched to ChBodyAuxRef
+
+		ChQuaternion<> q13; q13.Q_from_AngAxis(80*CH_C_DEG_TO_RAD,VECT_Y);
+
+		ChQuaternion<> q3 = rot1.Get_A_quaternion() >> q13;
+
+		
+		
+		
+
+		//// Definition in ABS frame
+		//rod->SetFrame_REF_to_abs(ChFrame<>(POS_lift2rod,rot3));
+		//rod->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0.,0.,0.), QUNIT));
+
+		// Definition in LIFT frame
+		std::cout << "ABS Frame: " << POS_lift2rod.x() << "\t" << POS_lift2rod.z() << std::endl;
+		std::cout << "LIFT Frame: " << (lift->GetFrame_REF_to_abs()*POS_lift2rod_lift).x() <<"\t" << (lift->GetFrame_REF_to_abs()*POS_lift2rod_lift).z() << std::endl;
+		rod->SetFrame_REF_to_abs(ChFrame<>(lift->GetFrame_REF_to_abs()*POS_lift2rod_lift, q3));// use rot3 for abs, q3 for relative
+		rod->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0., 0., 0.), QUNIT));
+
 		rod->SetMass(318.0);
 		rod->SetInertiaXX(ChVector<>(11.7, 33.4, 29.5));
 		rod->SetInertiaXY(ChVector<>(0., 0., -12.1));
@@ -323,16 +348,31 @@ class MyWheelLoader {
 		// collision model
 
 		//	// LINK
-		link = std::shared_ptr<ChBody>(system.NewBody());
+		link = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
 		system.Add(link);
 		link->SetName("link arm");
 		link->SetIdentifier(3);
-		link->SetPos(COG_link);
 		ChVector<> u4 = (POS_link2bucket - POS_rod2link).GetNormalized();
 		ChVector<> w4 = Vcross(u4, VECT_Y).GetNormalized();//overkill
 		ChMatrix33<> rot4;
 		rot4.Set_A_axis(u4, VECT_Y, w4);
-		link->SetRot(rot4);
+
+		ChQuaternion<> q34; q34.Q_from_AngAxis(-115 * CH_C_DEG_TO_RAD, VECT_Y);
+		ChQuaternion<> q4 = rot3.Get_A_quaternion() >> q34;
+
+		//// Definition in ABS frame
+		//link->SetFrame_REF_to_abs(ChFrame<>(POS_rod2link, rot4));
+		//link->SetFrame_COG_to_REF(ChFrame<>(COG_link, QUNIT));
+
+		// Definition in ROD frame
+		std::cout << "ABS Frame: " << POS_rod2link.x() << "\t" << POS_rod2link.z() << std::endl;
+		std::cout << "ROD Frame: " << (rod->GetFrame_REF_to_abs()* POS_rod2link_rod).x() << "\t" << (rod->GetFrame_REF_to_abs()* POS_rod2link_rod).z() << std::endl;
+		link->SetFrame_REF_to_abs(ChFrame<>(rod->GetFrame_REF_to_abs()* POS_rod2link_rod, q4));// rot4 absolute coords, q4 relative coords (formulation)
+		link->SetFrame_COG_to_REF(ChFrame<>(COG_link, QUNIT));
+		std::cout << "ABS Frame: " << POS_link2bucket.x() << "\t" << POS_link2bucket.z() << std::endl;
+		std::cout << "LINK Frame: " << (link->GetFrame_REF_to_abs()* POS_link2bucket_link).x() << "\t" << (link->GetFrame_REF_to_abs()* POS_link2bucket_link).z() << std::endl;
+
+
 		link->SetMass(56.0);
 		link->SetInertiaXX(ChVector<>(3.2, 11.1, 13.6));
 		link->SetInertiaXY(ChVector<>(0.0, 0.0, -.04));
@@ -341,7 +381,7 @@ class MyWheelLoader {
 		link_asset->GetCylinderGeometry().rad = .025;
 		link_asset->GetCylinderGeometry().p1 = link->GetFrame_COG_to_abs().GetInverse() * POS_rod2link;
 		link_asset->GetCylinderGeometry().p2 = link->GetFrame_COG_to_abs().GetInverse() * POS_link2bucket;
-		link->AddAsset(link_asset);
+		//link->AddAsset(link_asset);
 		auto col_l1 = std::make_shared<ChColorAsset>();
 		col_l1->SetColor(ChColor(0.0f, 0.2f, 0.2f));
 		link->AddAsset(col_l1);
@@ -350,12 +390,15 @@ class MyWheelLoader {
 		auto connectingrod_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		connectingrod_mesh_shape->SetMesh(connectingrod_mesh);
 		connectingrod_mesh_shape->SetName("connecting rod");
-		link->AddAsset(connectingrod_mesh_shape);//temporary
+		link->AddAsset(connectingrod_mesh_shape);
 		// collision model, in order to get natural link limits(abandoned).
 		link->SetCollide(true);
 		link->GetCollisionModel()->ClearModel();
 		//link->GetCollisionModel()->AddCylinder(.025, .025, Vlength(POS_rod2link - POS_link2bucket), link->GetFrame_COG_to_abs().GetInverse() * POS_rod2link, y2x >> rot4.Get_A_quaternion());
-		utils::AddCylinderGeometry(link.get(), .025, Vlength(POS_rod2link - POS_link2bucket)/2, link->GetFrame_COG_to_abs().GetInverse() * (POS_rod2link/2+POS_link2bucket/2), y2x >> rot4.Get_A_quaternion(), true);
+		//utils::AddCylinderGeometry(link.get(), .025, Vlength(POS_rod2link - POS_link2bucket)/2, link->GetFrame_COG_to_abs().GetInverse() * (+POS_link2bucket), y2x >> rot4.Get_A_quaternion(), false);// abs
+		utils::AddCylinderGeometry(link.get(), .025, Vlength(rod->GetFrame_REF_to_abs()* POS_rod2link_rod - link->GetFrame_REF_to_abs()* POS_link2bucket_link) / 2, link->GetFrame_COG_to_abs().GetInverse() * (link->GetFrame_REF_to_abs()* POS_link2bucket_link), y2x >> q4, false);// rel
+		link->GetCollisionModel()->SetFamily(3);
+		link>SetFamilyMaskNoCollisionWithFamily(1);
 		link->GetCollisionModel()->BuildModel();
 
 		//	// BUCKET
@@ -365,10 +408,12 @@ class MyWheelLoader {
 		bucket->SetIdentifier(4);
 		bucket->SetMass(1305.0);//confirmed data
 		bucket->SetInertiaXX(ChVector<>(200, 800, 200));//not confirmed data
-		bucket->SetPos(POS_lift2bucket);
-		//bucket->SetFrame_COG_to_REF(ChFrame<> (bucket->GetFrame_REF_to_abs().GetInverse() * COG_bucket,QUNIT));
-		bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(.05, .0, .02), QUNIT));//tentative
-		//bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(1., .0, .5), QUNIT));//tentative
+		//bucket->SetPos(POS_lift2bucket);
+		//bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(.1, .0, .1), QUNIT));
+		
+		bucket->SetFrame_REF_to_abs(ChFrame<>(POS_lift2bucket, QUNIT));
+		bucket->SetFrame_COG_to_REF(ChFrame<>(COG_bucket, QUNIT));
+
 		// Create contact geometry.
 		bucket->SetCollide(true);
 		bucket->GetCollisionModel()->ClearModel();
@@ -413,14 +458,14 @@ class MyWheelLoader {
 		// // It is the second of the three joints that interest the rod body(also known as rocker arm).
 		rev_lift2rod = std::make_shared<ChLinkLockRevolute>();
 		rev_lift2rod->SetName("revolute_lift2rod");
-		rev_lift2rod->Initialize(rod, lift, ChCoordsys<>(POS_lift2rod, z2y >> rot3.Get_A_quaternion()));		// z-dir default rev axis is rotated on y-dir
+		rev_lift2rod->Initialize(rod, lift, ChCoordsys<>(lift->GetFrame_REF_to_abs()*POS_lift2rod_lift, z2y >> rot3.Get_A_quaternion()));		// z-dir default rev axis is rotated on y-dir
 		system.AddLink(rev_lift2rod);
 
 		// Revolute Joint between the rod body and link, last of the three joints interesting the rod , rear joint of the two concerning the link.
 		rev_rod2link = std::make_shared<ChLinkLockRevolute>();
 		rev_rod2link->SetName("revolute_rod2link");
 		ChMatrix33<> rotb44; rotb44.Set_A_axis(VECT_X,VECT_Y,VECT_Z);
-		rev_rod2link->Initialize(link, rod, ChCoordsys<>(POS_rod2link, z2y >> rotb44.Get_A_quaternion()));		// z-dir default rev axis is rotated on y-dir 
+		rev_rod2link->Initialize(link, rod, ChCoordsys<>(rod->GetFrame_REF_to_abs()* POS_rod2link_rod, z2y >> rotb44.Get_A_quaternion()));		// z-dir default rev axis is rotated on y-dir 
 		system.AddLink(rev_rod2link);
 		// LIFT-BUCKET revjoint
 		rev_lift2bucket = std::make_shared<ChLinkLockRevolute>();
@@ -432,7 +477,7 @@ class MyWheelLoader {
 		rev_link2bucket = std::make_shared<ChLinkLockRevolute>();
 		rev_link2bucket->SetName("revolute_link2bucket");
 		ChMatrix33<> rotb2; rotb2.Set_A_axis(VECT_X, VECT_Y, VECT_Z);
-		rev_link2bucket->Initialize(bucket, link, ChCoordsys<>(POS_link2bucket, z2y >> rotb2.Get_A_quaternion()));	// z-dir default rev axis is rotated on y-dir
+		rev_link2bucket->Initialize(bucket, link, ChCoordsys<>(link->GetFrame_REF_to_abs()* POS_link2bucket_link, z2y >> rotb2.Get_A_quaternion()));	// z-dir default rev axis is rotated on y-dir
 		system.AddLink(rev_link2bucket);
 
 		// CHASSIS-LIFT revjoint
@@ -446,7 +491,7 @@ class MyWheelLoader {
 
 
 		// Linear Actuator between the lift body and the so called rod(also known as rocker arm)
-		ChVector<> u11 = (POS_lift2lever - PIS_lift2lever).GetNormalized();		//GetNormalized() yields a unit vector(versor)
+		ChVector<> u11 = (rod->GetFrame_REF_to_abs()*POS_lift2lever_rod - PIS_lift2lever).GetNormalized();		//GetNormalized() yields a unit vector(versor)
 		ChVector<> w11 = Vcross(u11, VECT_Y).GetNormalized();					//overkill
 		ChMatrix33<> rot11;														//no control on orthogonality, IT'S UP TO THE USER'
 		rot11.Set_A_axis(u11, VECT_Y, w11);
@@ -460,19 +505,18 @@ class MyWheelLoader {
 
 
 		auto tforce = std::make_shared<myHYDRforce>();
-		//ChFunction_Recorder pressure; pressure.AddPoint(0., 1);
-		auto thpressure = std::make_shared<ChFunction_Recorder>(); thpressure->AddPoint(0., 3.8167e5);
+		auto thpressure = std::make_shared<ChFunction_Recorder>(); thpressure->AddPoint(0., 6.8167e5);
 		auto trpressure = std::make_shared<ChFunction_Recorder>(); trpressure->AddPoint(0., 3.8167e5);
 		
 		// Using only the pneumatic actuator, weight of the arms makes them oscillating like a pendulum, hence real pressures are not enough to lift the system.
 		lin_lift2rod = std::make_shared<myHYDRactuator>();
 		lin_lift2rod->SetName("linear_lift2rod");// ChLinkMarkers child, force applied on slave m1
-		lin_lift2rod->Initialize(rod, chassis, false, ChCoordsys<>(POS_lift2lever, z2x >> rot11.Get_A_quaternion()), ChCoordsys<>(PIS_lift2lever, z2x >> rot11.Get_A_quaternion()));//m2 is the master
+		lin_lift2rod->Initialize(rod, chassis, false, ChCoordsys<>(rod->GetFrame_REF_to_abs()*POS_lift2lever_rod, z2x >> rot11.Get_A_quaternion()), ChCoordsys<>(PIS_lift2lever, z2x >> rot11.Get_A_quaternion()));//m2 is the master
 		lin_lift2rod->Set_HYDRforce(tforce);
 		lin_lift2rod->Set_PressureH(thpressure);
 		lin_lift2rod->Set_PressureR(trpressure);
-		lin_lift2rod->SetAreaH(CH_C_1_PI / 4 * pow(.150, 2));// Head Side, Diameter: 150mm
-		lin_lift2rod->SetAreaR(CH_C_1_PI / 4 * ( pow(.150, 2) - pow(.080,2)));// Piston Rod, Diameter: 80mm
+		lin_lift2rod->SetAreaH(CH_C_PI / 4 * pow(.150, 2));// Head Side, Diameter: 150mm
+		lin_lift2rod->SetAreaR(CH_C_PI / 4 * (pow(.150, 2) - pow(.080, 2)));// Piston Rod, Diameter: 80mm
 		// Attach a visualization asset.
 		lin_lift2rod->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
 #else
