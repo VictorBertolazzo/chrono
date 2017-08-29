@@ -11,6 +11,8 @@
 // =============================================================================
 // Authors: Radu Serban
 // =============================================================================
+// Modified: Victor Bertolazzo
+// =============================================================================
 //
 // Rear of the articulated vehicle model. This base class has a strcuture similar
 // to that of a ChWheeledVehicle.
@@ -53,6 +55,9 @@ class Articulated_Rear {
 
     /// Get the complete state for the specified wheel.
     chrono::vehicle::WheelState GetWheelState(const chrono::vehicle::WheelID& wheel_id) const;
+
+	/// Get the specified suspension subsystem.
+	std::shared_ptr<chrono::vehicle::ChSuspension> GetSuspension(int id) const { return m_suspensions[id]; }
 
   private:
     std::shared_ptr<Articulated_Chassis> m_front;  ///< handle to front side

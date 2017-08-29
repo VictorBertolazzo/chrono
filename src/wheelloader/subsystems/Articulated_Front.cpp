@@ -98,7 +98,7 @@ Articulated_Front::Articulated_Front(const bool fixed, ChMaterialSurface::Contac
     // --------------------
     // Create the driveline
     // --------------------
-    m_driveline = std::make_shared<Generic_Driveline2WD>("driveline");
+    //m_driveline = std::make_shared<Generic_Driveline2WD>("driveline");//Comment out for 4WD
 
     // -----------------
     // Create the brakes
@@ -132,7 +132,7 @@ Articulated_Front::Articulated_Front(ChSystem* system) : ChWheeledVehicle("Artic
 	// --------------------
 	// Create the driveline
 	// --------------------
-	m_driveline = std::make_shared<Generic_Driveline2WD>("driveline");
+	//m_driveline = std::make_shared<Generic_Driveline2WD>("driveline");//Comment out for 4WD
 
 	// -----------------
 	// Create the brakes
@@ -154,11 +154,36 @@ void Articulated_Front::Initialize(const ChCoordsys<>& chassisPos, double chassi
     m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
     m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
 
-    // Initialize the driveline subsystem (RWD)
-    std::vector<int> driven_susp(1, 0);
-    m_driveline->Initialize(m_chassis->GetBody(), m_suspensions, driven_susp);
+    //// Initialize the driveline subsystem (RWD) // Comment out for 4WD
+    //std::vector<int> driven_susp(1, 0);
+    //m_driveline->Initialize(m_chassis->GetBody(), m_suspensions, driven_susp);
 
     // Initialize the brakes
     m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
     m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
+}
+
+// -----------------------------------------------------------------------------
+void Articulated_Front::Synchronize(double time,
+	double steering,
+	double braking,
+	double powertrain_torque,
+	const TireForces& tire_forces) {
+
+	//// Apply powertrain torque to the driveline's input shaft.
+	//m_driveline->Synchronize(powertrain_torque);
+
+	// Let the steering subsystems process the steering input.
+	for (unsigned int i = 0; i < m_steerings.size(); i++) {
+		m_steerings[i]->Synchronize(time, steering);
+	}
+
+	// Apply tire forces to spindle bodies and apply braking.
+	for (unsigned int i = 0; i < m_suspensions.size(); i++) {
+		m_suspensions[i]->Synchronize(LEFT, tire_forces[2 * i]);
+		m_suspensions[i]->Synchronize(RIGHT, tire_forces[2 * i + 1]);
+
+		m_brakes[2 * i]->Synchronize(braking);
+		m_brakes[2 * i + 1]->Synchronize(braking);
+	}
 }

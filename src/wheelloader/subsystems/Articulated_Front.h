@@ -11,6 +11,8 @@
 // =============================================================================
 // Authors: Radu Serban
 // =============================================================================
+// Modified: Victor Bertolazzo
+// =============================================================================
 //
 // Front of the articulated vehicle model. Implemented as a ChWheeledVehicle.
 //
@@ -64,6 +66,22 @@ class Articulated_Front : public chrono::vehicle::ChWheeledVehicle {
 	Articulated_Front(chrono::ChSystem* system);
 	
     ~Articulated_Front() {}
+
+	/// Update the state of this vehicle at the current time.
+	/// The vehicle system is provided the current driver inputs (throttle between
+	/// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
+	/// from the powertrain, and tire forces (expressed in the global reference
+	/// frame).
+
+	// Review:the powertrain torque has no effect, since driveline is placed logically outside the vehicle communication system, hence overriding this method is needed in order
+	//                                                         to eliminate the effect of its call in ChWheeledVehicle.
+
+	virtual void Synchronize(double time,                   ///< [in] current time
+		double steering,               ///< [in] current steering input [-1,+1]
+		double braking,                ///< [in] current braking input [0,1]
+		double powertrain_torque,      ///< [in] input torque from powertrain
+		const chrono::vehicle::TireForces& tire_forces  ///< [in] vector of tire force structures
+		)override;
 
     virtual int GetNumberAxles() const override { return 1; }
 
