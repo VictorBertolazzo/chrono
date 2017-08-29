@@ -340,9 +340,15 @@ int main(int argc, char* argv[]) {
 		tire_RL->Synchronize(time, wheel_RL, terrain);
 		tire_RR->Synchronize(time, wheel_RR, terrain);
 
+		// Select Direction(it should be called only at changes)
+		// I need sth similar to powertrain.SetDriveMode, but my input file has values in range[-1:1:+1],
+		// hence a different method should be implemented
+
 		// Select Gear
-		powertrain.SetSelectedGear(gear_input);
+		powertrain.SetSelectedGear(gear_input);// Should it be a function of time as it is, ge(t), or position,ge(x,y) or speed,ge(v) ?
 		powertrain.Synchronize(time, throttle_input, driveshaft_speed);
+
+		driveline->Synchronize(powertrain_torque);//Is the time info needed?
 
 		front_side.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_front_forces);
 		rear_side.Synchronize(time, steering_input, braking_input, tire_rear_forces);
@@ -351,6 +357,13 @@ int main(int argc, char* argv[]) {
 		app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 #else
 		app.Synchronize("Message HUD", steering_input, throttle_input, braking_input);
+#endif
+
+
+#ifdef USE_PATH_FOLLOWER
+		driver.SetDesiredSpeed(target_speed->Get_y(time + 0.5));//Change target speed for successive Advance method.In this way speed is a function of time , v(t).
+																// needed to translate in a function of position v(x,y), this is a path follower not a traj follower.
+														  // "look ahead" speed
 #endif
 		// Advance simulation for one timestep for all modules
 		driver.Advance(step_size);
