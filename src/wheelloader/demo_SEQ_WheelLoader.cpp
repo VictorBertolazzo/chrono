@@ -104,6 +104,10 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
+// Input file names for the path-follower driver model
+std::string steering_controller_file("generic/driver/SteeringController.json");
+std::string speed_controller_file("generic/driver/SpeedController.json");
+std::string path_file("paths/straight10km.txt");
 
 // =============================================================================
 
