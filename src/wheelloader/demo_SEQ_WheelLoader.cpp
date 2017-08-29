@@ -207,6 +207,8 @@ int main(int argc, char* argv[]) {
 	app.AssetBindAll();
 	app.AssetUpdateAll();
 
+#define USE_PATH_FOLLOWER
+
 #ifdef USE_KEYBOARD
 	// Initialize interactive driver
 	ChIrrGuiDriver driver(app);
@@ -220,9 +222,19 @@ int main(int argc, char* argv[]) {
 	driver.SetThrottleDelta(render_step_size / throttle_time);
 	driver.SetBrakingDelta(render_step_size / braking_time);
 #else
+    
+#ifndef USE_PATH_FOLLOWER
+
 	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_NoSteer.dat");
 	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_RecYaw.dat");
 	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_ddYaw.dat");
+#else
+	auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
+	//auto path = ChBezierCurve::read(../data/WL_Path_First_Segment);// Uncomment to select real WL path.
+
+	ChPathFollowerDriver driver(front_side, vehicle::GetDataFile(steering_controller_file),
+		vehicle::GetDataFile(speed_controller_file), path, "my_path", 3.0);
+#endif // !
 
 
 #endif
