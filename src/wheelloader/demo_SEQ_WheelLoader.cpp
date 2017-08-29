@@ -250,6 +250,13 @@ int main(int argc, char* argv[]) {
 		gear->AddPoint(SelectedGear[i].mt, SelectedGear[i].mv);
 	}
 
+	// Create Desired Speed Time Series -- Test file WL_DesiredSpeed.dat
+	std::vector<TimeSeries> DesiredSpeed;
+	ReadFile("../data/WL_DesiredSpeed.dat", DesiredSpeed);
+	auto target_speed = std::make_shared<ChFunction_Recorder>();
+	for (int i = 0; i < SelectedGear.size(); i++){
+		target_speed->AddPoint(DesiredSpeed[i].mt, DesiredSpeed[i].mv);
+	}
 	// ---------------
 	// Tweak Solver Parameters
 	// ---------------
