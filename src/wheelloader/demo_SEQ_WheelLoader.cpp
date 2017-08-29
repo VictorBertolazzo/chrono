@@ -18,13 +18,26 @@
 // connecting the front and rear sides).
 //
 // Driver inputs are decided bmo a flag.
+// Keyboard can be used, a DataDriver(throttle,steering,braking), or a PathFollower(path,speed)
 //
 // The front_side reference frame has Z up, X towards the front of the vehicle,
 // and Y pointing to the left.
 //
-// Rigid Terrain is modeled here, in serial mode no Granular Terrain is taken into account.
+// Rigid Terrain is modeled here, in serial mode Granular Terrain is not taken into account due to computational costs.
 //
-// FIALA Tire Model is used with rigid terrain.
+// FIALA Tire Model is used with rigid terrain, no parameters available for that;
+// Rigid Tire hinders steering manouevre with this unusual type of steering joint.
+//
+// As not usual for a Chrono Vehicle, Driveline is implemented outside the derived class of ChWheeledVehicle, since it is 4WheelDriving but the two axles are located on different bodies:
+// both front part(ChWheeledVehicle) and rear part(ChBody) own one axle.
+// At the moment the speed and torque are passed with powertrain equally distributing them among the four wheels.Differentials will be thought in future.
+
+// Powertrain is a SimpleMap with only information about fullThrottleMap(not motor idling hence) and six possible gear ratios, 
+////	having the real vehicle disconnected FW and RW direction selection and pure gear selection(3 levels).
+// The one in the middle refers to idling(gear ration = 1e20).
+
+
+// WARNING: It needs: path, target_speed, gear_selection related to the same manouevre(Reorganize different manouevres in different folders to make the code thinner)
 // =============================================================================
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -32,9 +45,10 @@
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
-#include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
 #include "chrono_models/vehicle/generic/Generic_RigidTire.h"
 #include "chrono_models/vehicle/generic/Generic_FialaTire.h"
+
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
 
 // Chrono utility header files
@@ -49,6 +63,10 @@
 #include "subsystems/Articulated_Front.h"
 #include "subsystems/Articulated_Rear.h"
 
+#include "subsystems/WL_Driveline4WD.h"
+#include "subsystems/WL_SimpleDriveline4WD.h"
+
+#include "subsystems/WL_SimpleMapPowertrain.h"
 #include "subsystems/WL_ShaftsPowertrain.h"
 
 #include "subsystems/WL_FialaTire.h"
