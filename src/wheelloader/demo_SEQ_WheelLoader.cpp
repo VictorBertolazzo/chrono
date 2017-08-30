@@ -85,7 +85,7 @@ using namespace chrono::vehicle::generic;
 ChVector<> initLoc(0, 0, 1.0);
 
 // Initial front_side orientation
-ChQuaternion<> initRot = Q_from_AngZ(CH_C_PI / 10);
+ChQuaternion<> initRot = Q_from_AngZ(0*CH_C_PI / 10);
 
 // Type of tire model (RIGID or FIALA)
 TireModelType tire_model = TireModelType::FIALA;
@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
 	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_ddYaw.dat");
 #else
 	auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
-	//auto path = ChBezierCurve::read(../data/WL_Path_First_Segment);// Uncomment to select real WL path.
+	//auto path = ChBezierCurve::read(vehicle::GetDataFile("paths/WL_Path_First_Segment.dat"));// Uncomment to select real WL path.
 
 	ChPathFollowerDriver driver(front_side, vehicle::GetDataFile(steering_controller_file),
 		vehicle::GetDataFile(speed_controller_file), path, "my_path", 3.0);
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
 
 	// Create Desired Speed Time Series -- Test file WL_DesiredSpeed.dat
 	std::vector<TimeSeries> DesiredSpeed;
-	ReadFile("../data/WL_DesiredSpeed.dat", DesiredSpeed);
+	ReadFile("../data/WL_DesiredSpeedSmoothed.dat", DesiredSpeed);
 	auto target_speed = std::make_shared<ChFunction_Recorder>();
 	for (int i = 0; i < SelectedGear.size(); i++){
 		target_speed->AddPoint(DesiredSpeed[i].mt, DesiredSpeed[i].mv);
