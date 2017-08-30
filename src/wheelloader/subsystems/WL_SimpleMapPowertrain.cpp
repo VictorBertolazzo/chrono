@@ -33,8 +33,8 @@ WL_SimpleMapPowertrain::WL_SimpleMapPowertrain()
       m_motorTorque(0),
       m_shaftTorque(0),
 	  m_gear_ratios({ -1./1.342,- 1. / 3.033, -1. / 6.03, 1e20, 1. / 1.603, 1. / 3.033, 1. / 1.342 }),// 7 Different gear ratios, 3RW,1N,3FW
-      m_zeroThrottleMap({0.},
-                        {0.}),// "Idle throttle map is set to zero"
+      m_zeroThrottleMap({-100.,700.},
+                        {0.,0.}),// "Idle throttle map is set to zero"
       m_fullThrottleMap({-100., 700., 800., 900., 1000., 1100., 1200., 1300., 1400., 1500., 1600.,
                          1700., 1800., 1900., 2000., 2100.},
                         {300., 550., 650., 840., 841., 845., 843., 841., 835., 828., 793., 
