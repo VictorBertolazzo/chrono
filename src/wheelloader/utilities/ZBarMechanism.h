@@ -619,65 +619,25 @@ class MyWheelLoader {
 		
 
 		
-		// Prism Joint: as pneumatic actuator, the system does not move(hyper-constrained).
-		
-		//auto prism_lin_ch2lift = std::make_shared<ChLinkLockPrismatic>();
-		//prism_lin_ch2lift->Initialize(lift, chassis, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot22.Get_A_quaternion()));//m2 is the master
-		//system.AddLink(prism_lin_ch2lift);
-
-		// Spring Case: memory violation, not able to fix it
-
-		/*MySpringForce force;
-
-		auto spring_2 = std::make_shared<ChLinkSpringCB>();
-		spring_2->Initialize(lift, chassis, true, INS_ch2lift, PIS_ch2lift, false, 1.5);
-		spring_2->RegisterForceFunctor(&force);
-		system.AddLink(spring_2);
-		//// Attach a visualization asset.
-		//spring_2->AddAsset(std::make_shared<ChColorAsset>(ChColor(0, 0, 0.6f)));
-		//spring_2->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
-		*/
 
 		// Hydraulic Force calculation-input
 		std::vector<TimeSeries> ReadHeadPressure;
 		ReadPressureFile("../data/HeadLiftPressure.dat",ReadHeadPressure);
 		auto lhpressure = std::make_shared<ChFunction_Recorder>();
 		for (int i = 0; i < ReadHeadPressure.size(); i++){
-			lhpressure->AddPoint(ReadHeadPressure[i].mt, 2e5*ReadHeadPressure[i].mv);//2 pistons,data in [bar]
+			lhpressure->AddPoint(ReadHeadPressure[i].mt, 1.75e5*ReadHeadPressure[i].mv);//2 pistons,data in [bar]
 		}
 		std::vector<TimeSeries> ReadRodPressure;
 		ReadPressureFile("../data/RodLiftPressure.dat", ReadRodPressure);
 		auto lrpressure = std::make_shared<ChFunction_Recorder>();
 		for (int i = 0; i < ReadRodPressure.size(); i++){
-			lrpressure->AddPoint(ReadRodPressure[i].mt, 2e5*ReadRodPressure[i].mv);// 2 pistons, data in [bar]
+			lrpressure->AddPoint(ReadRodPressure[i].mt, 1.75e5*ReadRodPressure[i].mv);// 2 pistons, data in [bar]
 		}
 
 		auto lforce = std::make_shared<myHYDRforce>();
 		
 		
 
-		// Formulation for a different system-Add more bodies and constraints.
-		
-		/*auto lift_cyl = std::shared_ptr<ChBody>(system.NewBody());
-		system.AddBody(lift_cyl);
-		lift_cyl->SetPos(PIS_ch2lift);
-
-		auto lift_pis = std::shared_ptr<ChBody>(system.NewBody());
-		system.AddBody(lift_pis);
-		lift_pis->SetPos(INS_ch2lift);
-
-		auto rev_A = std::make_shared<ChLinkLockRevolute>();
-		system.AddLink(rev_A);
-		rev_A->Initialize(lift_cyl,chassis,ChCoordsys<>(PIS_ch2lift,z2y >> QUNIT));
-
-		auto rev_D = std::make_shared<ChLinkLockRevolute>();
-		system.AddLink(rev_D);
-		rev_D->Initialize(lift_pis,lift,ChCoordsys<>(INS_ch2lift,z2y >> QUNIT));
-
-		auto lift_prism = std::make_shared<ChLinkLockPrismatic>();
-		system.AddLink(lift_prism);
-		lift_prism->Initialize(lift_pis, lift_cyl, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot22.Get_A_quaternion()));
-*/
 
 		// Pneum Act:, weight of the arms makes them oscillating like a pendulum, hence real pressures are not enough to lift the system.
 
