@@ -33,26 +33,29 @@ class MyWheelLoader {
 			}
 		};
 
-	// Handles
-	//std::shared_ptr<ChBody> lift;
+	// Handles to the bodies
 	std::shared_ptr<ChBodyAuxRef> lift;
 	std::shared_ptr<ChBodyAuxRef> rod;
 	std::shared_ptr<ChBodyAuxRef> link;
 	std::shared_ptr<ChBodyAuxRef> bucket;
 	std::shared_ptr<ChBody> chassis;
 
+	// Handles to the links
 	std::shared_ptr<ChLinkLockRevolute> rev_lift2rod;
 	std::shared_ptr<ChLinkLockRevolute> rev_rod2link;
 	std::shared_ptr<ChLinkLockRevolute> rev_lift2bucket;
 	std::shared_ptr<ChLinkLockRevolute> rev_link2bucket;
 	std::shared_ptr<ChLinkLockRevolute> rev_ch2lift;
+
 	// USE_PNEUMATICS flag.
 	std::shared_ptr<myHYDRactuator> lin_ch2lift;		
 	std::shared_ptr<myHYDRactuator> lin_lift2rod;	
-	
 	//std::shared_ptr<ChLinkLinActuator> lin_ch2lift;
 	//std::shared_ptr<ChLinkLinActuator> lin_lift2rod;
 
+
+
+	// Quaternions Initialization
 	ChQuaternion<> z2y;
 	ChQuaternion<> z2x;
 	ChQuaternion<> y2x;
@@ -82,11 +85,16 @@ class MyWheelLoader {
 
 
 	}
+
+	// AddBucketHull function: it takes two different hull points set in order to approximate the shape of the bucket(without the lateral caps) into an assembly of prismatic convex shapes.
+	//							At each iteration the "cloud" vector has 8 points, defining the vertexes of the prism.
+	//							AddConvexHull function converts this cloud into a collision shape, while ChConvexHullLibraryWrapper allows it to be visualized.
+	//							No BuildModel method is here, since it must be called outside in the body initialization steps where this function is used.
 	void AddBucketHull(std::vector<Points> p_ext, std::vector<Points> p_int, std::shared_ptr<ChBody> bucket) {
 
 		for (int iter = 0; iter < p_ext.size() - 1; iter++) {
 			std::vector<ChVector<double>> cloud;
-			double width = 1.0;// or halve an input
+			double width = 1.3;// or halve an input
 
 			cloud.push_back(ChVector<>(p_int[iter].mx, p_int[iter].my - width, p_int[iter].mz));
 			cloud.push_back(ChVector<>(p_int[iter + 1].mx, p_int[iter + 1].my - width, p_int[iter + 1].mz));
@@ -106,12 +114,16 @@ class MyWheelLoader {
 			auto shape = std::make_shared<ChTriangleMeshShape>();
 			collision::ChConvexHullLibraryWrapper lh;
 			lh.ComputeHull(cloud, shape->GetMesh());
-			//bucket->AddAsset(shape);
+			bucket->AddAsset(shape);
 
 			//bucket->AddAsset(std::make_shared<ChColorAsset>(0.5f, 0.0f, 0.0f));
 		}
 
 	}
+	// AddCapsHull function : it receives only one profile from the bucket point of view(the inner), and build up a point cloud of 6 elements, 
+	//						  in order to create a series of tetrahedrons which will close the bucket side.
+	//							AddConvexHull function converts this cloud into a collision shape, while ChConvexHullLibraryWrapper allows it to be visualized.
+	//							No BuildModel method is here, since it must be called outside in the body initialization steps where this function is used.
 	void AddCapsHulls(std::vector<Points> p_int, BucketSide side, std::shared_ptr<ChBody> bucket) {
 
 
@@ -122,10 +134,10 @@ class MyWheelLoader {
 			switch (side)
 			{
 			case LEFT:
-				width = +1.;
+				width = +1.3;
 				break;
 			case RIGHT:
-				width = -1.0;
+				width = -1.3;
 				break;
 			default:
 				width = .0;
@@ -149,12 +161,13 @@ class MyWheelLoader {
 			auto shape = std::make_shared<ChTriangleMeshShape>();
 			collision::ChConvexHullLibraryWrapper lh;
 			lh.ComputeHull(cloud, shape->GetMesh());
-			//bucket->AddAsset(shape);
+			bucket->AddAsset(shape);
 
 			//bucket->AddAsset(std::make_shared<ChColorAsset>(0.5f, 0.0f, 0.0f));
 		}
 	}
 	// -------------------TIME SERIES STRUCTURE----------------------------
+	// Time Series structure: utility to grab two columns file values(t_k,f(t_k)) extensively used in this project.
 	struct TimeSeries {
 		TimeSeries() {}
 		TimeSeries(float t, float v)
@@ -162,6 +175,7 @@ class MyWheelLoader {
 		float mt; float mv;
 	};
 	// -------------------READ PRESSURE FILE FUNCTION----------------------------
+	// Read Pressure function : converts a text file in a time series vector. 
 	void ReadPressureFile(const std::string& filename, std::vector<TimeSeries>& profile) {
 		std::ifstream ifile(filename.c_str());
 		std::string line;
@@ -179,6 +193,8 @@ class MyWheelLoader {
 
 
 	}
+	
+	
 	// Constructor	
 
 	MyWheelLoader(ChSystem& system){
@@ -203,62 +219,70 @@ class MyWheelLoader {
 		materialDEM->SetFriction(0.4f);
 		materialDEM->SetAdhesion(0);  								// Magnitude of the adhesion in Constant adhesion model
 
-		////////////////////////////////////////////////////////Links Position Data
+		////////////////////////////////////////////////////////Links Position Data--Letter of the points refer to Schematics.vsd file.
 
-		ChVector<> POS_ch2lift(0., 0, 2.115);						//Rev chassis->lift--POINT [B]
-		ChVector<> PIS_ch2lift(0., 0, 1.675);						//Act chassis->lift--POINT [A]
-		ChVector<> PIS_lift2lever(.320, 0, 2.027);					//Act lift->lever--POINT [C]
+		ChVector<> POS_ch2lift(0., 0, 2.115);														//Rev chassis->lift--POINT [B]
+		ChVector<> PIS_ch2lift(0., 0, 1.675);														//Act chassis->lift--POINT [A]
+		ChVector<> PIS_lift2lever(.320, 0, 2.027);													//Act lift->lever--POINT [C]
 
-		ChVector<> INS_ch2lift(1.13, 0, 1.515);						// Insertion of boom piston over lift body--POINT [D]
-		ChVector<> POS_lift2bucket(2.26, .0, .832);					//chassis piston(LIFT ARM) insertion abs frame--POINT [G]
+		ChVector<> INS_ch2lift(1.13, 0, 1.515);														// Insertion of boom piston over lift body--POINT [D]
+		ChVector<> POS_lift2bucket(2.26, .0, .832);													//Defined in abs frame		//rev joint --POINT [G]
 
-		ChVector<> POS_lift2rod(1.60, .0, 1.80);//Defined in abs frame					//rev joint(LIFT ARM) abs frame--POINT [F]
-		ChVector<> POS_lift2rod_lift(1.550, .0, .518);//Defined in LIFT frame					//rev joint(LIFT ARM) abs frame--POINT [F]
+		ChVector<> POS_lift2bucket_lift(2.6, 0., 0.);												//Defined in LIFT frame		//rev joint --POINT [G]
+
+		ChVector<> POS_lift2rod(1.60, .0, 1.80);													//Defined in abs frame		//rev joint(LIFT ARM) abs frame--POINT [F]
+		ChVector<> POS_lift2rod_lift(1.550, .0, .518);												//Defined in LIFT frame		//rev joint(LIFT ARM) abs frame--POINT [F]
 
 		// suppose rod arm oriented parallel to vertical axis(assumption, useful to define initial positions)
-		ChVector<> POS_lift2lever(POS_lift2rod.x() -.2, 0, POS_lift2rod.z() + (1.267-.770));// Defined in ABS frame			//end position actuator lift->lever--POINT [E]
-		ChVector<> POS_lift2lever_rod(-.497, 0,-.20 );// Defined in ROD frame														//end position actuator lift->lever--POINT [E]
+		ChVector<> POS_lift2lever(POS_lift2rod.x() -.2, 0, POS_lift2rod.z() + (1.267-.770));		// Defined in ABS frame		//end position actuator lift->lever--POINT [E]
+		ChVector<> POS_lift2lever_rod(-.497, 0,-.20 );												// Defined in ROD frame		//end position actuator lift->lever--POINT [E]
 
-		ChVector<> POS_rod2link(POS_lift2rod.x() - .2, 0, POS_lift2rod.z() - (.770));//Defined in ABS frame		//Act lift->lever--POINT [H]
-		ChVector<> POS_rod2link_rod(.770, 0, -.0);// Defined in ROD frame		//Act lift->lever--POINT [H]
+		ChVector<> POS_rod2link(POS_lift2rod.x() - .2, 0, POS_lift2rod.z() - (.770));				//Defined in ABS frame		//Act lift->lever--POINT [H]
+		ChVector<> POS_rod2link_rod(.770, 0, -.0);													// Defined in ROD frame		//Act lift->lever--POINT [H]
 
 		// same trick for link arm, parallel to ground
-		ChVector<> POS_link2bucket(POS_rod2link.x() + .718, .0, POS_rod2link.z());	// Defined in ABS frame		//chassis piston(BUCKET LEVER) insertion abs frame--POINT [L]
-		ChVector<> POS_link2bucket_link(.718, .0, 0.);	// Defined in LINK frame									//chassis piston(BUCKET LEVER) insertion abs frame--POINT [L]
+		ChVector<> POS_link2bucket(POS_rod2link.x() + .718, .0, POS_rod2link.z());					// Defined in ABS frame		//chassis piston(BUCKET LEVER) insertion abs frame--POINT [L]
+		ChVector<> POS_link2bucket_link(.718, .0, 0.);												// Defined in LINK frame	//chassis piston(BUCKET LEVER) insertion abs frame--POINT [L]
 
 
 		////////////////////////////////////////////////////////COG Position Data-Relative Reference Frames Coordinates
-		ChVector<> COG_chassis(POS_ch2lift); // somewhere not defined
-		ChVector<> COG_lift(ChVector<>(2.6/2,0.,.518/3)); // Lift body com-relative frame
-		ChVector<> COG_rod(ChVector<>(1.267 / 2, 0., 0.));
-		ChVector<> COG_link(ChVector<>(.718/2,0.,0.));
-		ChVector<> COG_bucket(ChVector<>(.15,0.,.5)); // not easy definition
+		ChVector<> COG_chassis(POS_ch2lift);							// not important
+		ChVector<> COG_lift(ChVector<>(2.6/2,0.,.518/3));				// Lift body com-relative frame
+		ChVector<> COG_rod(ChVector<>(1.267 / 2, 0., 0.));				// Rod body com-relative frame
+		ChVector<> COG_link(ChVector<>(.718/2,0.,0.));					// Link body com-relative frame
+		ChVector<> COG_bucket(ChVector<>(.15,0.,.5));					// (not previously known location)
 
 		/// USEFUL Quaternions
-		z2y.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
-		z2x.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(0, 1, 0));
-		y2x.Q_from_AngAxis(CH_C_PI_2, VECT_Z);
+		z2y.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));			// It rotates -90° about x axis--used in revolute-like joint definition
+		z2x.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(0, 1, 0));			// It rotates 90° about y axis--used in prismatic-like joint definition
+		y2x.Q_from_AngAxis(CH_C_PI_2, VECT_Z);							// It rotates 90° about z axis
 
 		////////////////////////--------------Create rigid bodies-------------------------------////////////////////////////////////////////
 		///////////////////////-----------------------------------------------------------------////////////////////////////////////////////
-		// LIFT
-		lift = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());//switched to ChBodyAuxRef
+
+		// LIFT BODY
+		// It is also called the boom. It's the biggest and heaviest among the attachment arms, and connects to the front part by means of a revolute joint 
+		//                                    and a piston actuator(in reality two, but they're parallel considering x-y perspective, hence summarized in once in x-z plane.).
+		// It links with bucket with a revolute joint and with so-called ROD BODY(also rocker) with another revolute.
+		lift = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
 		system.Add(lift);
 		lift->SetBodyFixed(false);
 		lift->SetName("lift arm");
-		//lift->SetPos(POS_ch2lift);// switched to ChBodyAuxRef;
-		ChVector<> u1 = (POS_lift2bucket - POS_ch2lift).GetNormalized();//switched to ChBodyAuxRef
-		ChVector<> w1 = Vcross(u1, VECT_Y).GetNormalized();//overkill
-		ChMatrix33<> rot1;//no control on orthogonality
+
+		// Coordinates Definition
+		ChVector<> u1 = (POS_lift2bucket - POS_ch2lift).GetNormalized();
+		ChVector<> w1 = Vcross(u1, VECT_Y).GetNormalized();
+		ChMatrix33<> rot1;
 		rot1.Set_A_axis(u1, VECT_Y, w1);
-		//lift->SetRot(rot1);	//		lift->SetFrame_COG_to_REF(ChFrame<>(lift->GetFrame_REF_to_abs().GetInverse() * COG_lift, QUNIT));//switched to ChBodyAuxRef
 		lift->SetFrame_REF_to_abs(ChFrame<>(POS_ch2lift, rot1));
 		lift->SetFrame_COG_to_REF(ChFrame<>(COG_lift, QUNIT));
-		lift->SetMass(928.0);
+		
+		// Mass Properties
+		lift->SetMass(928.0 + 2 * 136.0);
 		lift->SetInertiaXX(ChVector<>(110.2, 1986.1, 1919.3));
 		lift->SetInertiaXY(ChVector<>(0., 0., 339.6));
 
-		// primitive visualization:
+		// Primitive visualization:
 		auto lift_asset = std::make_shared<ChCylinderShape>();
 		lift_asset->GetCylinderGeometry().rad = .025;
 		lift_asset->GetCylinderGeometry().p1 = lift->GetFrame_COG_to_abs().GetInverse() * POS_ch2lift;
@@ -276,9 +300,13 @@ class MyWheelLoader {
 		lift_asset3->GetCylinderGeometry().p1 = lift->GetFrame_COG_to_abs().GetInverse() * INS_ch2lift;
 		lift_asset3->GetCylinderGeometry().p2 = lift->GetFrame_COG_to_abs().GetInverse() * POS_lift2bucket;
 		//lift->AddAsset(lift_asset);lift->AddAsset(lift_asset1);lift->AddAsset(lift_asset2);lift->AddAsset(lift_asset3);
+		
+		// Visualization Color
 		auto col_l = std::make_shared<ChColorAsset>();
 		col_l->SetColor(ChColor(0.2f, 0.0f, 0.0f));
 		lift->AddAsset(col_l);
+		
+		// Mesh Visualization
 		geometry::ChTriangleMeshConnected lift_mesh;
 		lift_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-boom.obj", false, false);
 		auto lift_mesh_shape = std::make_shared<ChTriangleMeshShape>();
@@ -286,20 +314,26 @@ class MyWheelLoader {
 		lift_mesh_shape->SetName("boom");
 		lift->AddAsset(lift_mesh_shape);
 
-		// collision model, in order to get natural link limits(abandoned).
-		////lift->SetCollide(true);
-		////lift->GetCollisionModel()->ClearModel();
-		////ChVector<> ucyl1 = (POS_lift2bucket - POS_ch2lift).GetNormalized();ChVector<> wcyl1 = Vcross(ucyl1, VECT_Y).GetNormalized();//overkill
-		////ChMatrix33<> rotcyl1; rotcyl1.Set_A_axis(ucyl1, VECT_Y, wcyl1);
-		////utils::AddCylinderGeometry(lift.get(), .025, Vlength(POS_ch2lift - POS_lift2rod), POS_ch2lift, rotcyl1.Get_A_quaternion() , true);
-		////lift->GetCollisionModel()->BuildModel();
+		// Collision Model().
+		lift->SetCollide(true);
+		lift->GetCollisionModel()->ClearModel();
+		ChVector<> ucyl1 = (POS_lift2bucket - POS_ch2lift).GetNormalized();ChVector<> wcyl1 = Vcross(ucyl1, VECT_Y).GetNormalized();//overkill
+		ChMatrix33<> rotcyl1; rotcyl1.Set_A_axis(VECT_X, VECT_Y, VECT_Z);
+		utils::AddCylinderGeometry(lift.get(), .025, Vlength(POS_ch2lift - POS_lift2bucket) / 2, POS_lift2bucket_lift/2 + ChVector<>(0.,.6,0.), y2x >> rotcyl1.Get_A_quaternion(), false);
+		utils::AddCylinderGeometry(lift.get(), .025, Vlength(POS_ch2lift - POS_lift2bucket) / 2, POS_lift2bucket_lift / 2 + ChVector<>(0., -.6, 0.), y2x >> rotcyl1.Get_A_quaternion(), false);
+		lift->GetCollisionModel()->BuildModel();
 
 
-		// ROD
+		// ROD BODY
+		// Sometimes it is called rocker or linkage body.
+		// It is the body deputized to transmit the tilting movement to the bucket.
+		// It connects with the front part of the vehicle by means of a piston actuator, to the so-called LIFT BODY(boom) with a revolute.
+		// Another revolute links the body to the LINK BODY(connecting rod)
 		rod = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
 		system.Add(rod);
 		rod->SetName("rod arm");
 		rod->SetIdentifier(3);
+		// Coordinates Definition
 		ChVector<> u3 = (POS_rod2link - POS_lift2rod).GetNormalized();//absolute coords
 		ChVector<> w3 = Vcross(u3, VECT_Y).GetNormalized();//overkill
 		ChMatrix33<> rot3;
@@ -308,11 +342,6 @@ class MyWheelLoader {
 		ChQuaternion<> q13; q13.Q_from_AngAxis(80*CH_C_DEG_TO_RAD,VECT_Y);
 
 		ChQuaternion<> q3 = rot1.Get_A_quaternion() >> q13;
-
-		
-		
-		
-
 		//// Definition in ABS frame
 		//rod->SetFrame_REF_to_abs(ChFrame<>(POS_lift2rod,rot3));
 		//rod->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0.,0.,0.), QUNIT));
@@ -323,10 +352,12 @@ class MyWheelLoader {
 		rod->SetFrame_REF_to_abs(ChFrame<>(lift->GetFrame_REF_to_abs()*POS_lift2rod_lift, q3));// use rot3 for abs, q3 for relative
 		rod->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0., 0., 0.), QUNIT));
 
-		rod->SetMass(318.0);
+		// Mass Properties
+		rod->SetMass(318.0+127.0);
 		rod->SetInertiaXX(ChVector<>(11.7, 33.4, 29.5));
 		rod->SetInertiaXY(ChVector<>(0., 0., -12.1));
-		// visualization properties:
+		
+		// Primitive Visualization :
 		auto rod_asset = std::make_shared<ChCylinderShape>();
 		rod_asset->GetCylinderGeometry().rad = .025;
 		rod_asset->GetCylinderGeometry().p1 = rod->GetFrame_COG_to_abs().GetInverse() * POS_lift2lever;
@@ -336,24 +367,31 @@ class MyWheelLoader {
 		rod_asset1->GetCylinderGeometry().p1 = rod->GetFrame_COG_to_abs().GetInverse() * POS_lift2rod;
 		rod_asset1->GetCylinderGeometry().p2 = rod->GetFrame_COG_to_abs().GetInverse() * POS_rod2link;
 		//rod->AddAsset(rod_asset);rod->AddAsset(rod_asset1);
+
+		// Visualization Color
 		auto col_r = std::make_shared<ChColorAsset>();
 		col_r->SetColor(ChColor(0.0f, 0.0f, 0.2f));
 		rod->AddAsset(col_r);
+
+		// Mesh Visualization
 		geometry::ChTriangleMeshConnected rocker_mesh;
 		rocker_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-linkage.obj", false, false);// 
 		auto rocker_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		rocker_mesh_shape->SetMesh(rocker_mesh);
 		rocker_mesh_shape->SetName("rocker");
-		rod->AddAsset(rocker_mesh_shape);//temporary
-		// collision model
+		rod->AddAsset(rocker_mesh_shape);
+		// Collision model
 
-		//	// LINK
+		// LINK BODY
+		// It is also called connecting rod.
+		// Its extremities connect with ROD BODY and BUCKET, both revolute joints with.
 		link = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
 		system.Add(link);
 		link->SetName("link arm");
 		link->SetIdentifier(3);
+		// Coordinates Definition
 		ChVector<> u4 = (POS_link2bucket - POS_rod2link).GetNormalized();
-		ChVector<> w4 = Vcross(u4, VECT_Y).GetNormalized();//overkill
+		ChVector<> w4 = Vcross(u4, VECT_Y).GetNormalized();
 		ChMatrix33<> rot4;
 		rot4.Set_A_axis(u4, VECT_Y, w4);
 
@@ -372,36 +410,42 @@ class MyWheelLoader {
 		std::cout << "ABS Frame: " << POS_link2bucket.x() << "\t" << POS_link2bucket.z() << std::endl;
 		std::cout << "LINK Frame: " << (link->GetFrame_REF_to_abs()* POS_link2bucket_link).x() << "\t" << (link->GetFrame_REF_to_abs()* POS_link2bucket_link).z() << std::endl;
 
-
+		// Mass Properties
 		link->SetMass(56.0);
 		link->SetInertiaXX(ChVector<>(3.2, 11.1, 13.6));
 		link->SetInertiaXY(ChVector<>(0.0, 0.0, -.04));
-		// visualization properties:
+		// Primitive Visualization :
 		auto link_asset = std::make_shared<ChCylinderShape>();
 		link_asset->GetCylinderGeometry().rad = .025;
 		link_asset->GetCylinderGeometry().p1 = link->GetFrame_COG_to_abs().GetInverse() * POS_rod2link;
 		link_asset->GetCylinderGeometry().p2 = link->GetFrame_COG_to_abs().GetInverse() * POS_link2bucket;
 		//link->AddAsset(link_asset);
+
+		// Visualization Color
 		auto col_l1 = std::make_shared<ChColorAsset>();
 		col_l1->SetColor(ChColor(0.0f, 0.2f, 0.2f));
 		link->AddAsset(col_l1);
+		
+		// Mesh Visualization
 		geometry::ChTriangleMeshConnected connectingrod_mesh;
 		connectingrod_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-connectingrod.obj", false, false);// 
 		auto connectingrod_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		connectingrod_mesh_shape->SetMesh(connectingrod_mesh);
 		connectingrod_mesh_shape->SetName("connecting rod");
 		link->AddAsset(connectingrod_mesh_shape);
-		// collision model, in order to get natural link limits(abandoned).
+		
+		// Collision model(WIP).
 		link->SetCollide(true);
 		link->GetCollisionModel()->ClearModel();
-		//link->GetCollisionModel()->AddCylinder(.025, .025, Vlength(POS_rod2link - POS_link2bucket), link->GetFrame_COG_to_abs().GetInverse() * POS_rod2link, y2x >> rot4.Get_A_quaternion());
-		//utils::AddCylinderGeometry(link.get(), .025, Vlength(POS_rod2link - POS_link2bucket)/2, link->GetFrame_COG_to_abs().GetInverse() * (+POS_link2bucket), y2x >> rot4.Get_A_quaternion(), false);// abs
 		utils::AddCylinderGeometry(link.get(), .025, Vlength(rod->GetFrame_REF_to_abs()* POS_rod2link_rod - link->GetFrame_REF_to_abs()* POS_link2bucket_link) / 2, link->GetFrame_COG_to_abs().GetInverse() * (link->GetFrame_REF_to_abs()* POS_link2bucket_link), y2x >> q4, false);// rel
 		link->GetCollisionModel()->SetFamily(3);
-		link>SetFamilyMaskNoCollisionWithFamily(1);
+		//link>SetFamilyMaskNoCollisionWithFamily(1);
 		link->GetCollisionModel()->BuildModel();
 
+
 		//	// BUCKET
+		// It's the body handles the material.
+		// It has two revolutes(in reality three), one with LINK BODY and the other with LIFT BODY(in reality two, but they're parallel considering x-y perspective, hence summarized in once in x-z plane.)
 		bucket = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
 		system.AddBody(bucket);
 		bucket->SetName("benna");
@@ -420,20 +464,26 @@ class MyWheelLoader {
 		AddBucketHull(p_ext, p_int, bucket);
 		AddCapsHulls(p_int, BucketSide::LEFT, bucket);
 		AddCapsHulls(p_int, BucketSide::RIGHT, bucket);
+
 #ifdef USE_PENALTY//temporary workaround
 		bucket->SetMaterialSurface(materialDEM);
 #else
 		bucket->SetMaterialSurface(materialDVI);
 #endif
 		bucket->GetCollisionModel()->BuildModel();
+
+		// Mesh Visualization
 		geometry::ChTriangleMeshConnected bucket_mesh;
-		bucket_mesh.LoadWavefrontMesh(out_dir + "data/bucket_mod.obj", false, false);
+		bucket_mesh.LoadWavefrontMesh(out_dir + "data/bucket-L550.obj", false, false);
 		auto bucket_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		bucket_mesh_shape->SetMesh(bucket_mesh);
 		bucket_mesh_shape->SetName("bucket");
-		bucket->AddAsset(bucket_mesh_shape);
+		//bucket->AddAsset(bucket_mesh_shape);
+
+
 
 		// CHASSIS
+		// It's a fake body representing the rest of the vehicle in first simulations.
 		chassis = std::shared_ptr<ChBody>(system.NewBody());
 		system.AddBody(chassis);
 		chassis->SetBodyFixed(true);//temporary
@@ -505,8 +555,8 @@ class MyWheelLoader {
 
 
 		auto tforce = std::make_shared<myHYDRforce>();
-		auto thpressure = std::make_shared<ChFunction_Recorder>(); thpressure->AddPoint(0., 6.8167e5);
-		auto trpressure = std::make_shared<ChFunction_Recorder>(); trpressure->AddPoint(0., 3.8167e5);
+		auto thpressure = std::make_shared<ChFunction_Recorder>(); thpressure->AddPoint(0., 1e5);
+		auto trpressure = std::make_shared<ChFunction_Recorder>(); trpressure->AddPoint(0., 0.9e5);
 		
 		// Using only the pneumatic actuator, weight of the arms makes them oscillating like a pendulum, hence real pressures are not enough to lift the system.
 		lin_lift2rod = std::make_shared<myHYDRactuator>();
