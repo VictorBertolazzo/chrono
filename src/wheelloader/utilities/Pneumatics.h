@@ -8,7 +8,7 @@ using namespace chrono::collision;
 	class myHYDRactuator : public ChLinkMarkers{
 
 	public:
-		myHYDRactuator() : m_force(0), m_force_fun(NULL), m_pressureH(nullptr), m_pressureR(NULL), m_areaH(5e-3), m_areaR(10) {};
+		myHYDRactuator() : m_force(0), m_force_fun(nullptr), m_pressureH(nullptr), m_pressureR(nullptr), m_areaH(5e-3), m_areaR(10) {};
 		myHYDRactuator(const myHYDRactuator& other);
 		virtual ~myHYDRactuator() {}
 
