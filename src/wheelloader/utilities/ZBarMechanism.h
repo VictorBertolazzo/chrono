@@ -47,13 +47,15 @@ class MyWheelLoader {
 	std::shared_ptr<ChLinkLockRevolute> rev_link2bucket;
 	std::shared_ptr<ChLinkLockRevolute> rev_ch2lift;
 
-	// USE_PNEUMATICS flag.
+	//#define USE_PNEUMATIC 
+
+#ifdef USE_PNEUMATIC
 	std::shared_ptr<myHYDRactuator> lin_ch2lift;		
 	std::shared_ptr<myHYDRactuator> lin_lift2rod;	
-	//std::shared_ptr<ChLinkLinActuator> lin_ch2lift;
-	//std::shared_ptr<ChLinkLinActuator> lin_lift2rod;
-
-
+#else
+	std::shared_ptr<ChLinkLinActuator> lin_ch2lift;
+	std::shared_ptr<ChLinkLinActuator> lin_lift2rod;
+#endif
 
 	// Quaternions Initialization
 	ChQuaternion<> z2y;
@@ -319,8 +321,8 @@ class MyWheelLoader {
 		lift->GetCollisionModel()->ClearModel();
 		ChVector<> ucyl1 = (POS_lift2bucket - POS_ch2lift).GetNormalized();ChVector<> wcyl1 = Vcross(ucyl1, VECT_Y).GetNormalized();//overkill
 		ChMatrix33<> rotcyl1; rotcyl1.Set_A_axis(VECT_X, VECT_Y, VECT_Z);
-		utils::AddCylinderGeometry(lift.get(), .025, Vlength(POS_ch2lift - POS_lift2bucket) / 2, POS_lift2bucket_lift/2 + ChVector<>(0.,.6,0.), y2x >> rotcyl1.Get_A_quaternion(), false);
-		utils::AddCylinderGeometry(lift.get(), .025, Vlength(POS_ch2lift - POS_lift2bucket) / 2, POS_lift2bucket_lift / 2 + ChVector<>(0., -.6, 0.), y2x >> rotcyl1.Get_A_quaternion(), false);
+		utils::AddCylinderGeometry(lift.get(), .025, Vlength(POS_ch2lift - POS_lift2bucket) / 2 - .2, POS_lift2bucket_lift/2 + ChVector<>(0.,.6,0.), y2x >> rotcyl1.Get_A_quaternion(), false);
+		utils::AddCylinderGeometry(lift.get(), .025, Vlength(POS_ch2lift - POS_lift2bucket) / 2 - .2, POS_lift2bucket_lift / 2 + ChVector<>(0., -.6, 0.), y2x >> rotcyl1.Get_A_quaternion(), false);
 		lift->GetCollisionModel()->BuildModel();
 
 
@@ -545,8 +547,22 @@ class MyWheelLoader {
 		ChVector<> w11 = Vcross(u11, VECT_Y).GetNormalized();					//overkill
 		ChMatrix33<> rot11;														//no control on orthogonality, IT'S UP TO THE USER'
 		rot11.Set_A_axis(u11, VECT_Y, w11);
-#define USE_PNEUMATIC
 #ifdef USE_PNEUMATIC
+		// Hydraulic Force calculation-input
+		std::vector<TimeSeries> ReadHeadPressure;
+		ReadPressureFile("../data/HeadLiftPressure.dat", ReadHeadPressure);
+		auto lhpressure = std::make_shared<ChFunction_Recorder>();
+		for (int i = 0; i < ReadHeadPressure.size(); i++){
+			lhpressure->AddPoint(ReadHeadPressure[i].mt, 1.75e5*ReadHeadPressure[i].mv);//2 pistons,data in [bar]
+		}
+		std::vector<TimeSeries> ReadRodPressure;
+		ReadPressureFile("../data/RodLiftPressure.dat", ReadRodPressure);
+		auto lrpressure = std::make_shared<ChFunction_Recorder>();
+		for (int i = 0; i < ReadRodPressure.size(); i++){
+			lrpressure->AddPoint(ReadRodPressure[i].mt, 1.75e5*ReadRodPressure[i].mv);// 2 pistons, data in [bar]
+		}
+
+
 		// Using prismatic connection oriented as pneumatic actuator, the system does not move(hyper-constrained).
 
 		//auto prism_lin_lift2rod = std::make_shared<ChLinkLockPrismatic>();
@@ -554,10 +570,18 @@ class MyWheelLoader {
 		//system.AddLink(prism_lin_lift2rod);
 
 
+		auto thpressure = std::make_shared<ChFunction_Recorder>(); 
+		for (int i = 0; i < ReadHeadPressure.size(); i++){
+			thpressure->AddPoint(ReadHeadPressure[i].mt, .2e5*ReadHeadPressure[i].mv);//2 pistons,data in [bar]
+		}
+		auto trpressure = std::make_shared<ChFunction_Recorder>(); 
+		for (int i = 0; i < ReadRodPressure.size(); i++){
+			trpressure->AddPoint(ReadRodPressure[i].mt, .2e5*ReadRodPressure[i].mv);// 2 pistons, data in [bar]
+		}
+
+
 		auto tforce = std::make_shared<myHYDRforce>();
-		auto thpressure = std::make_shared<ChFunction_Recorder>(); thpressure->AddPoint(0., 1e5);
-		auto trpressure = std::make_shared<ChFunction_Recorder>(); trpressure->AddPoint(0., 0.9e5);
-		
+
 		// Using only the pneumatic actuator, weight of the arms makes them oscillating like a pendulum, hence real pressures are not enough to lift the system.
 		lin_lift2rod = std::make_shared<myHYDRactuator>();
 		lin_lift2rod->SetName("linear_lift2rod");// ChLinkMarkers child, force applied on slave m1
@@ -570,36 +594,45 @@ class MyWheelLoader {
 		// Attach a visualization asset.
 		lin_lift2rod->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
 #else
+		std::vector<TimeSeries> ReadTiltDisplacement;
+		ReadPressureFile("../data/TiltDisplacement.dat", ReadTiltDisplacement);
+		auto tdisplacement = std::make_shared<ChFunction_Recorder>();
+		for (int i = 0; i < ReadTiltDisplacement.size(); i++){
+			tdisplacement->AddPoint(ReadTiltDisplacement[i].mt, 0.1*ReadTiltDisplacement[i].mv);// 2 pistons, data in [bar]
+		}
+
+
 		lin_lift2rod = std::make_shared<ChLinkLinActuator>();
 		//		lin_lift2rod = std::unique_ptr<ChLinkMarkers>(new ChLinkLinActuator());
 		lin_lift2rod->SetName("linear_lift2rod");
 		lin_lift2rod->Initialize(rod, lift, false, ChCoordsys<>(POS_lift2lever, z2x >> rot11.Get_A_quaternion()), ChCoordsys<>(PIS_lift2lever, z2x >> rot11.Get_A_quaternion()));//m2 is the master
 		lin_lift2rod->Set_lin_offset(Vlength(POS_lift2lever - PIS_lift2lever));
 
-		// A test law for the actuator--> it'll be substitued by an accessor method->no more inplace law definiton in the future.
-		// temporary piston law for lift2rod actuator -> it'll be set constant by default and changeable by accessor
-		// Note : it is as displacement law
-		auto legget1 = std::make_shared<ChFunction_Const>();
-		auto legget2 = std::make_shared<ChFunction_Ramp>(); legget2->Set_ang(-.008);
-		auto legget3 = std::make_shared<ChFunction_Const>();
-		auto tilt_law_test = std::make_shared<ChFunction_Sequence>(); tilt_law_test->InsertFunct(legget1, ta4, 1, true); tilt_law_test->InsertFunct(legget2, ta5 - ta4, 1., true); tilt_law_test->InsertFunct(legget3, ta3 - ta5, 1., true);
-		//	// Former test function
-		auto legge1 = std::make_shared<ChFunction_Ramp>();			legge1->Set_ang(1.0);
-		auto legge2 = std::make_shared<ChFunction_Const>();
-		auto legge3 = std::make_shared<ChFunction_Ramp>();			legge3->Set_ang(-1.0);
-		auto tilt_law = std::make_shared<ChFunction_Sequence>();
-		tilt_law->InsertFunct(legge1, 1.0, 1, true); tilt_law->InsertFunct(legge2, 1.0, 1., true); tilt_law->InsertFunct(legge3, 1.0, 1., true);
-		auto tilt_law_seq = std::make_shared<ChFunction_Repeat>();
-		tilt_law_seq->Set_fa(tilt_law);
-		tilt_law_seq->Set_window_length(3.0);
-		tilt_law_seq->Set_window_start(0.0);
-		tilt_law_seq->Set_window_phase(3.0);
-		// test_law
-		auto tilt_law_testing = std::make_shared<ChFunction_Const>();
-		tilt_law_testing->Set_yconst(Vlength(VNULL));
-		// end test_law
+		//// A test law for the actuator--> it'll be substitued by an accessor method->no more inplace law definiton in the future.
+		//// temporary piston law for lift2rod actuator -> it'll be set constant by default and changeable by accessor
+		//// Note : it is as displacement law
+		//auto legget1 = std::make_shared<ChFunction_Const>();
+		//auto legget2 = std::make_shared<ChFunction_Ramp>(); legget2->Set_ang(-.008);
+		//auto legget3 = std::make_shared<ChFunction_Const>();
+		//auto tilt_law_test = std::make_shared<ChFunction_Sequence>(); tilt_law_test->InsertFunct(legget1, ta4, 1, true); tilt_law_test->InsertFunct(legget2, ta5 - ta4, 1., true); tilt_law_test->InsertFunct(legget3, ta3 - ta5, 1., true);
+		////	// Former test function
+		//auto legge1 = std::make_shared<ChFunction_Ramp>();			legge1->Set_ang(1.0);
+		//auto legge2 = std::make_shared<ChFunction_Const>();
+		//auto legge3 = std::make_shared<ChFunction_Ramp>();			legge3->Set_ang(-1.0);
+		//auto tilt_law = std::make_shared<ChFunction_Sequence>();
+		//tilt_law->InsertFunct(legge1, 1.0, 1, true); tilt_law->InsertFunct(legge2, 1.0, 1., true); tilt_law->InsertFunct(legge3, 1.0, 1., true);
+		//auto tilt_law_seq = std::make_shared<ChFunction_Repeat>();
+		//tilt_law_seq->Set_fa(tilt_law);
+		//tilt_law_seq->Set_window_length(3.0);
+		//tilt_law_seq->Set_window_start(0.0);
+		//tilt_law_seq->Set_window_phase(3.0);
+		//// test_law
+		//auto tilt_law_testing = std::make_shared<ChFunction_Const>();
+		//tilt_law_testing->Set_yconst(Vlength(VNULL));
+		//// end test_law
 		
-		lin_lift2rod->Set_dist_funct(tilt_law_test);
+
+		lin_lift2rod->Set_dist_funct(tdisplacement);
 		// Asset for the linear actuator
 		auto bp_asset = std::make_shared<ChPointPointSegment>();				//asset
 		lin_lift2rod->AddAsset(bp_asset);
@@ -620,19 +653,6 @@ class MyWheelLoader {
 
 		
 
-		// Hydraulic Force calculation-input
-		std::vector<TimeSeries> ReadHeadPressure;
-		ReadPressureFile("../data/HeadLiftPressure.dat",ReadHeadPressure);
-		auto lhpressure = std::make_shared<ChFunction_Recorder>();
-		for (int i = 0; i < ReadHeadPressure.size(); i++){
-			lhpressure->AddPoint(ReadHeadPressure[i].mt, 1.75e5*ReadHeadPressure[i].mv);//2 pistons,data in [bar]
-		}
-		std::vector<TimeSeries> ReadRodPressure;
-		ReadPressureFile("../data/RodLiftPressure.dat", ReadRodPressure);
-		auto lrpressure = std::make_shared<ChFunction_Recorder>();
-		for (int i = 0; i < ReadRodPressure.size(); i++){
-			lrpressure->AddPoint(ReadRodPressure[i].mt, 1.75e5*ReadRodPressure[i].mv);// 2 pistons, data in [bar]
-		}
 
 		auto lforce = std::make_shared<myHYDRforce>();
 		
@@ -654,36 +674,44 @@ class MyWheelLoader {
 		system.AddLink(lin_ch2lift);
 		
 #else
+		std::vector<TimeSeries> ReadLiftDisplacement;
+		ReadPressureFile("../data/LiftDisplacement.dat", ReadLiftDisplacement);
+		auto ldisplacement = std::make_shared<ChFunction_Recorder>();
+		for (int i = 0; i < ReadLiftDisplacement.size(); i++){
+			ldisplacement->AddPoint(ReadLiftDisplacement[i].mt, 0.1*ReadLiftDisplacement[i].mv);// 2 pistons, data in [bar]
+		}
+
 		lin_ch2lift = std::make_shared<ChLinkLinActuator>();
 		lin_ch2lift->SetName("linear_chassis2lift");
 		lin_ch2lift->Initialize(lift, chassis, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot22.Get_A_quaternion()));//m2 is the master
 		lin_ch2lift->Set_lin_offset(Vlength(INS_ch2lift - PIS_ch2lift));
-		// temporary piston law for chassis2lift actuator -> it'll be set constant by default and changeable by accessor
-		// Note : it is as displacement law
-		auto leggel1 = std::make_shared<ChFunction_Const>();
-		auto leggel2 = std::make_shared<ChFunction_Ramp>(); leggel2->Set_ang(+.015);
-		auto leggel3 = std::make_shared<ChFunction_Const>();
-		auto lift_law = std::make_shared<ChFunction_Sequence>(); lift_law->InsertFunct(leggel1, ta1, 1, true); lift_law->InsertFunct(leggel2, ta2 - ta1, 1., true); lift_law->InsertFunct(leggel3, ta3 - ta2, 1., true);
-		auto lift_law_test = std::make_shared<ChFunction_Sequence>();
-		lift_law_test->InsertFunct(legge1, 1.0, 1, true);
-		lift_law_test->InsertFunct(legge2, 1.0, 1., true);
-		lift_law_test->InsertFunct(legge3, 1.0, 1., true);
-		auto lift_law_seq = std::make_shared<ChFunction_Repeat>();
-		lift_law_seq->Set_fa(lift_law_test);
-		lift_law_seq->Set_window_length(3.0);
-		lift_law_seq->Set_window_start(0.0);
-		lift_law_seq->Set_window_phase(3.0);
-		auto lift_law_sine = std::make_shared<ChFunction_Sine>();
-		lift_law_sine->Set_w(1.0472);
-		lift_law_sine->Set_amp(.5*Vlength(INS_ch2lift - PIS_ch2lift));
+		//// temporary piston law for chassis2lift actuator -> it'll be set constant by default and changeable by accessor
+		//// Note : it is as displacement law
+		//auto leggel1 = std::make_shared<ChFunction_Const>();
+		//auto leggel2 = std::make_shared<ChFunction_Ramp>(); leggel2->Set_ang(+.015);
+		//auto leggel3 = std::make_shared<ChFunction_Const>();
+		//auto lift_law = std::make_shared<ChFunction_Sequence>(); lift_law->InsertFunct(leggel1, ta1, 1, true); lift_law->InsertFunct(leggel2, ta2 - ta1, 1., true); lift_law->InsertFunct(leggel3, ta3 - ta2, 1., true);
+		//auto lift_law_test = std::make_shared<ChFunction_Sequence>();
+		//lift_law_test->InsertFunct(legge1, 1.0, 1, true);
+		//lift_law_test->InsertFunct(legge2, 1.0, 1., true);
+		//lift_law_test->InsertFunct(legge3, 1.0, 1., true);
+		//auto lift_law_seq = std::make_shared<ChFunction_Repeat>();
+		//lift_law_seq->Set_fa(lift_law_test);
+		//lift_law_seq->Set_window_length(3.0);
+		//lift_law_seq->Set_window_start(0.0);
+		//lift_law_seq->Set_window_phase(3.0);
+		//auto lift_law_sine = std::make_shared<ChFunction_Sine>();
+		//lift_law_sine->Set_w(1.0472);
+		//lift_law_sine->Set_amp(.5*Vlength(INS_ch2lift - PIS_ch2lift));
+
 		//	//	ASSET FOR LINEAR ACTUATOR
 		lin_ch2lift->AddAsset(std::make_shared<ChPointPointSegment>());
-		// test_law
-		auto lift_law_testing = std::make_shared<ChFunction_Const>();
-		lift_law_testing->Set_yconst(Vlength(VNULL));
-		// end test_law
+		//// test_law
+		//auto lift_law_testing = std::make_shared<ChFunction_Const>();
+		//lift_law_testing->Set_yconst(Vlength(VNULL));
+		//// end test_law
 
-		lin_ch2lift->Set_dist_funct(lift_law);
+		lin_ch2lift->Set_dist_funct(ldisplacement);
 		system.Add(lin_ch2lift);
 #endif
 
@@ -691,9 +719,6 @@ class MyWheelLoader {
 	// Destructor
 	~MyWheelLoader(){}
 	// Getter
-	void PrintValue(){
-		GetLog() << "This is a PrintValue() class method: " << chassis->GetPos().z() << "\n";
-	}
 	double GetMass(){
 	return	lift->GetMass() + link->GetMass() + rod->GetMass() + bucket->GetMass();
 	}
