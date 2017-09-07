@@ -70,7 +70,7 @@ void AddBucketHull(std::vector<Points> p_ext, std::vector<Points> p_int, std::sh
 
 	for (int iter = 0; iter < p_ext.size() - 1; iter++) {
 		std::vector<ChVector<double>> cloud;
-		double width = 1.0;// or halve an input
+		double width = 1.3;// or halve an input
 
 		cloud.push_back(ChVector<>(p_int[iter].mx, p_int[iter].my - width, p_int[iter].mz));
 		cloud.push_back(ChVector<>(p_int[iter + 1].mx, p_int[iter + 1].my - width, p_int[iter + 1].mz));
@@ -106,10 +106,10 @@ void AddCapsHulls(std::vector<Points> p_int, BucketSide side, std::shared_ptr<Ch
 		switch (side)
 		{
 		case LEFT:
-			width = +1.;
+			width = +1.3;
 			break;
 		case RIGHT:
-			width = -1.0;
+			width = -1.3;
 			break;
 		default:
 			width = .0;
@@ -394,9 +394,11 @@ int main(int argc, char** argv) {
 				time_step = 1e-3;//0.075e-3; 
 			}
 			if (radius_g == 0.05){ time_end = 20.50; }
-
+			std::cout << center.z() << std::endl;
+			if (center.z() > 1.){ break; }
 		}
 
+		
 		break;
 	}
 	}
