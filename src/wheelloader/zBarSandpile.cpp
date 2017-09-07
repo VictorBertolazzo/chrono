@@ -52,7 +52,7 @@
 using namespace chrono;
 
 #include "utilities/ZBarMechanism.h"
-#include "utilities/Pneumatics.h"
+//#include "utilities/Pneumatics.h"
 
 //////-----------------------------------------GLOBAL VARIABLES------------------------////////////////////////////////////
 // Output directories
@@ -1285,6 +1285,7 @@ int main(int argc, char** argv) {
 
 
 	while (system->GetChTime() < time_end) {
+		std::cout << "Start Simulation: " << std::endl;
 		if (povray_output){
 			if (step_number % render_step_size == 0) {
 				// Output render data

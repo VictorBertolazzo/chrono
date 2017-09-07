@@ -35,6 +35,7 @@ SET(MODELS
   demo_PAR_WheelLoader
   demo_SEQ_WheelLoader
 #  demo_VEH_wheelloader
+# demo_WL_straight_piling
   hydraulic_force
   iArmlinkage
   test_granular_PAR
@@ -48,7 +49,7 @@ SET(MODELS
   test_PAR_rolling_friction
   test_scalability_sandpile
   test_SEQ_rolling_friction
-  utest_PAR_linactuator
+#  utest_PAR_linactuator
   zBarlinkage
   zBarlinkage_PAR
   zBarSandpile
