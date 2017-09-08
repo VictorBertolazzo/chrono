@@ -18,8 +18,6 @@
 #include "chrono/physics/ChLinkLinActuator.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChPointPointDrawing.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
-#include "chrono_irrlicht/ChIrrApp.h"
 // Particle Generation
 #include "chrono/utils/ChUtilsGenerators.h"
 // C++ libraries
@@ -27,9 +25,15 @@
 #include <stdio.h>
 #include <vector>
 #include <cmath>
+#ifdef CHRONO_IRRLICHT
 #include <irrlicht.h>
+#include "chrono_irrlicht/ChBodySceneNodeTools.h"
+#include "chrono_irrlicht/ChIrrApp.h"
+#endif
 // OpenGL
+#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
+#endif
 // Custom functions 
 #include "utilities/ZBarMechanism.h"
 // Chrono
@@ -38,16 +42,18 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::irrlicht;
 using namespace chrono::collision;
 
 // Use the main namespaces of Irrlicht
+#ifdef CHRONO_IRRLICHT
+using namespace chrono::irrlicht;
 using namespace irr;
 using namespace irr::core;
 using namespace irr::scene;
 using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
+#endif
 
 // Define Flag in order to decide which contact method algorithm use:NSC(DVI) or SMC(DEM)
 //#define USE_PENALTY

@@ -13,8 +13,10 @@
 #include <vector>
 #include <cmath>
 
-
+#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
+#endif
+
 #include "chrono_parallel/physics/ChSystemParallel.h"
 using namespace chrono;
 using namespace chrono::collision;
@@ -540,7 +542,7 @@ int main(int argc, char* argv[]) {
 		//5. Prepare Visualization with OpenGL
 		// Create OpenGL window and camera
 		// -------------------------------
-
+#ifdef CHRONO_OPENGL
 		opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 		gl_window.Initialize(1280, 720, "Zbar linkage parallel", &system);
 		gl_window.SetCamera(ChVector<>(10, 11, 10), ChVector<>(3.5, 0, 0), ChVector<>(0, 0, 1));
@@ -553,7 +555,7 @@ int main(int argc, char* argv[]) {
 				gl_window.Render();
 			}
 		}
-
+#endif
 		//_CrtDumpMemoryLeaks();
 
     return 0;
