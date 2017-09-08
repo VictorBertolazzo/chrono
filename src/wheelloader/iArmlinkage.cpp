@@ -19,8 +19,12 @@
 #include "chrono/physics/ChLinkLinActuator.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChPointPointDrawing.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
-#include "chrono_irrlicht/ChIrrApp.h"
+
+#ifdef CHRONO_IRRLICHT
+
+	#include "chrono_irrlicht/ChBodySceneNodeTools.h"
+	#include "chrono_irrlicht/ChIrrApp.h"
+#endif
 
 #include "chrono/utils/ChUtilsGenerators.h"
 
@@ -38,6 +42,7 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::collision;
 
+#ifdef CHRONO_IRRLICHT
 // Use the main namespaces of Irrlicht
 using namespace irr;
 using namespace irr::core;
@@ -45,6 +50,7 @@ using namespace irr::scene;
 using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
+#endif
 
 // Define Flag in order to decide which contact method algorithm use:DVI or DEM
 #define USE_PENALTY
@@ -569,7 +575,7 @@ system.ShowHierarchy(GetLog());
 
 	
 	
-	
+#ifdef CHRONO_IRRLICHT	
 	// Create the Irrlicht application and set-up the camera.
 	ChIrrApp * application = new ChIrrApp(
 		&system,                               // pointer to the mechanical system
@@ -587,6 +593,7 @@ system.ShowHierarchy(GetLog());
     
 	application->SetTimestep(0.01);
 	application->SetTryRealtime(true);
+
 
 	while (application->GetDevice()->run()) {
 
@@ -609,7 +616,7 @@ system.ShowHierarchy(GetLog());
 	}
 
 
-
+#endif
 
     return 0;
 }

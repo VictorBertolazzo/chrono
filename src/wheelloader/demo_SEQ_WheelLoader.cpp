@@ -301,13 +301,15 @@ int main(int argc, char* argv[]) {
 	double time = 0;
 
 	while (app.GetDevice()->run()) {
+
+#ifdef CHRONO_IRRLICHT
 		// Render scene
 		if (step_number % render_steps == 0) {
 			app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
 			app.DrawAll();
 			app.EndScene();
 		}
-
+#endif
 		// Collect output data from modules (for inter-module communication)
 		throttle_input = driver.GetThrottle();
 		steering_input = driver.GetSteering();
@@ -378,9 +380,9 @@ int main(int argc, char* argv[]) {
 		powertrain.Advance(step_size);
 
 		front_side.Advance(step_size);
-
+#ifdef CHRONO_IRRLICHT
 		app.Advance(step_size);
-
+#endif
 		// Increment frame number
 		step_number++;
 	}
