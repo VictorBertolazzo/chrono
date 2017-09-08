@@ -84,20 +84,25 @@ SET(CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}
 
 SET(LIBRARIES
     ChronoEngine
-    ChronoEngine_irrlicht
     ChronoEngine_parallel
-    ChronoEngine_opengl
     ChronoEngine_vehicle
     ChronoModels_vehicle
 )
+IF(ENABLE_MODULE_OPENGL)
+    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
+    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
+ENDIF()
+
+IF(ENABLE_MODULE_IRRLICHT)
+	INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
+    SET(LIBRARIES ${LIBRARIES} ChronoEngine_irrlicht)
+ENDIF()
 
 #--------------------------------------------------------------
 # Additional include directories
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
-INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
-INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
 
 
 
@@ -113,12 +118,7 @@ foreach(PROGRAM ${MODELS})
 
   message(STATUS "...add ${PROGRAM}")
 
-#  if (${PROGRAM} MATCHES "demo_PAR_WheelLoader")
 		add_executable(${PROGRAM}  "${PROGRAM}.cpp"  ${UTILITIES} ${MODEL_FILES})
-#  else()
-#		add_executable(${PROGRAM}  "${PROGRAM}.cpp"  ${UTILITIES})
-
-#  endif()
  
   source_group(""  FILES "${PROGRAM}.cpp")
 
