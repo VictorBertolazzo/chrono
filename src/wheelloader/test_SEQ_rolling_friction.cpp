@@ -381,24 +381,27 @@ int main(int argc, char** argv) {
 	int out_frame = 0;
 	int next_out_frame = 0;
 	double avkinenergy = 0.;
-
+#ifdef CHRONO_IRRLICHT
 	application.SetStepManage(true);
 	application.SetTimestep(time_step);
 	//application.SetTryRealtime(true);
+#endif
 
-
-	//while (system->GetChTime() < time_end) {
-			while (application.GetDevice()->run()) {
+	while (system->GetChTime() < time_end) {
+			//while (application.GetDevice()->run()) {
 
 				if (system->GetChTime() > time_end)
 					break;
+#ifdef CHRONO_IRRLICHT
 				// Irrlicht must prepare frame to draw
 				application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
 
 				application.DrawAll();
 
 				application.DoStep();
-			
+#else
+				system->DoStepDynamics();
+#endif
 		
 				sim_frame++;
 
@@ -424,8 +427,9 @@ int main(int argc, char** argv) {
 		cum_solver_time += system->GetTimerSolver();
 		cum_update_time += system->GetTimerUpdate();
 
+#ifdef CHRONO_IRRLICHT
 		application.GetVideoDriver()->endScene();
-
+#endif
 
 	}
 	// Gnuplot
