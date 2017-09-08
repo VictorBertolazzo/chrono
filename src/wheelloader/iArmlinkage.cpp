@@ -39,10 +39,11 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::irrlicht;
 using namespace chrono::collision;
 
 #ifdef CHRONO_IRRLICHT
+using namespace chrono::irrlicht;
+
 // Use the main namespaces of Irrlicht
 using namespace irr;
 using namespace irr::core;

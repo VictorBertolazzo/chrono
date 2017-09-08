@@ -198,6 +198,7 @@ int main(int argc, char* argv[]) {
 	tire_RL->SetVisualizationType(VisualizationType::PRIMITIVES);
 	tire_RR->SetVisualizationType(VisualizationType::PRIMITIVES);
 
+#ifdef CHRONO_IRRLICHT
 	// Initialize Irrlicht app
 	ChWheeledVehicleIrrApp app(&front_side, &powertrain, L"Articulated Vehicle Demo");
 	app.SetSkyBox();
@@ -208,6 +209,9 @@ int main(int argc, char* argv[]) {
 
 	app.AssetBindAll();
 	app.AssetUpdateAll();
+
+#endif
+
 
 #define USE_PATH_FOLLOWER
 
@@ -275,11 +279,12 @@ int main(int argc, char* argv[]) {
 	obstacle->SetPos(ChVector<>(initLoc.x() + 3., initLoc.y(), 0.));
 	obstacle->SetRot(initRot);
 
+#ifdef CHRONO_IRRLICHT
 	// ---------------
 	// SetVerbose
 	// ---------------
 	app.GetSystem()->GetSolver()->SetVerbose(false);
-
+#endif
 
 	// ---------------
 	// Simulation loop
@@ -302,16 +307,15 @@ int main(int argc, char* argv[]) {
 	int step_number = 0;
 	double time = 0;
 
+#ifdef CHRONO_IRRLICHT
 	while (app.GetDevice()->run()) {
 
-#ifdef CHRONO_IRRLICHT
 		// Render scene
 		if (step_number % render_steps == 0) {
 			app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
 			app.DrawAll();
 			app.EndScene();
 		}
-#endif
 		// Collect output data from modules (for inter-module communication)
 		throttle_input = driver.GetThrottle();
 		steering_input = driver.GetSteering();
@@ -382,12 +386,12 @@ int main(int argc, char* argv[]) {
 		powertrain.Advance(step_size);
 
 		front_side.Advance(step_size);
-#ifdef CHRONO_IRRLICHT
+
 		app.Advance(step_size);
-#endif
 		// Increment frame number
 		step_number++;
 	}
+#endif
 
 	return 0;
 }
