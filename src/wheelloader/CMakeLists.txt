@@ -42,10 +42,10 @@ SET(MODELS
 #  test_granular_PAR_cyl
 #  test_granular_PAR_funnel
 #  test_granular_PAR_layer
-  test_HYDR_actuator # future
-  test_mesh
-  test_normal
-  test_normal_PAR
+#  test_HYDR_actuator # future
+#  test_mesh
+#  test_normal
+#  test_normal_PAR
   test_PAR_rolling_friction
   test_scalability_sandpile
   test_SEQ_rolling_friction
