@@ -400,7 +400,7 @@ int main(int argc, char** argv) {
 
 				application.DoStep();
 #else
-				system->DoStepDynamics();
+				system->DoStepDynamics(time_step);
 #endif
 		
 				sim_frame++;
