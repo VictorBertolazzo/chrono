@@ -24,6 +24,7 @@
 
 	#include "chrono_irrlicht/ChBodySceneNodeTools.h"
 	#include "chrono_irrlicht/ChIrrApp.h"
+	#include <irrlicht.h>
 #endif
 
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -32,10 +33,9 @@
 #include <vector>
 #include <cmath>
 
-#include <irrlicht.h>
-
-#include "chrono_opengl/ChOpenGLWindow.h"
-
+#ifdef CHRONO_OPENGL
+	#include "chrono_opengl/ChOpenGLWindow.h"
+#endif
 
 // Use the namespaces of Chrono
 using namespace chrono;
