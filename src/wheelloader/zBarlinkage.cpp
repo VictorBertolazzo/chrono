@@ -427,7 +427,7 @@ int main(int argc, char* argv[]) {
 //    Note that Irrlicht uses left-handed frames with Y up.
 	
 	
-	
+#ifdef CHRONO_IRRLICHT
 	// Create the Irrlicht application and set-up the camera.
 	ChIrrApp * application = new ChIrrApp(
 		system,                               // pointer to the mechanical system
@@ -476,6 +476,6 @@ int main(int argc, char* argv[]) {
 
 
 
-
+#endif
     return 0;
 }
