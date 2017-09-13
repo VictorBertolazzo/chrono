@@ -35,9 +35,10 @@ SET(MODELS
   demo_PAR_WheelLoader
   demo_SEQ_WheelLoader
 #  demo_VEH_wheelloader
-# demo_WL_straight_piling
   hydraulic_force
   iArmlinkage
+ sim_WL_straight_piling
+ sim_LOADER_straight_piling
   test_granular_PAR
 #  test_granular_PAR_cyl
 #  test_granular_PAR_funnel
