@@ -638,11 +638,22 @@ class MyWheelLoader {
 	}
 	// Destructor
 	~MyWheelLoader(){}
-	// Getter
-	double GetMass(){
-	return	lift->GetMass() + link->GetMass() + rod->GetMass() + bucket->GetMass();
-	}
-	// Setter
+
+	// Getters
+	// Get the whole mechanism mass.
+	double GetMass(){return	lift->GetMass() + link->GetMass() + rod->GetMass() + bucket->GetMass();	}
+	// Get the relative(wrt ground x-z plane) angle of lifting
+	double GetLiftArmPitchAngle(){ return this->rev_ch2lift->GetRelAngle(); }
+	// Get the relative(wrt ground x-z plane) angle of tilting
+	double GetTiltBucketPitchAngle(){ return this->rev_lift2bucket->GetRelAngle(); }
+	// Get the reaction force on piston(sure?), lifting
+	double GetReactLiftForce(){ return this->lin_ch2lift->Get_react_force().x(); }
+	// Get the reaction force on piston(sure?), tilting
+	double GetReactTiltForce(){ return this->lin_lift2rod->Get_react_force().x(); }
+
+	// Setters
+	void SetPistonLiftImposedMotion(std::shared_ptr<ChFunction> funct){ this->lin_ch2lift->Set_dist_funct(funct); }
+	void SetPistonTiltImposedMotion(std::shared_ptr<ChFunction> funct){ this->lin_lift2rod->Set_dist_funct(funct); }
 
 };
 
