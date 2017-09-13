@@ -262,16 +262,61 @@ void SetBroadphaseParameters(ChSystemParallel* system, double num_particles, vec
 void UpdateMaterialProperties(std::shared_ptr<ChMaterialSurfaceNSC> mat_ter){
 	mat_ter->SetFriction(mu_g);
 	mat_ter->SetRestitution(0.);
-	mat_ter->SetCohesion(coh_force);
-	mat_ter->SetSpinningFriction(r_g / 100);
-	mat_ter->SetRollingFriction(r_g / 100);
+	mat_ter->SetCohesion((float)coh_force);
+	mat_ter->SetSpinningFriction((float)r_g / 100);
+	mat_ter->SetRollingFriction((float)r_g / 100);
 
 }
+// =============================================================================
+//	IMPOSED MOTION FUNCTIONS
+// =============================================================================
+void SetPistonsMovement(ChSystem* system, MyWheelLoader* mywl){
+	std::vector<TimeSeries> ReadTiltDisplacement;
+	ReadPressureFile("../data/TiltDisplacement.dat", ReadTiltDisplacement);
+	auto tdisplacement = std::make_shared<ChFunction_Recorder>();
+	for (int i = 0; i < ReadTiltDisplacement.size(); i++){
+		tdisplacement->AddPoint(ReadTiltDisplacement[i].mt, 0.1*ReadTiltDisplacement[i].mv);// 2 pistons, data in [bar]
+	}
+
+	mywl->SetPistonTiltImposedMotion(tdisplacement);
 
 
+
+
+	std::vector<TimeSeries> ReadLiftDisplacement;
+	ReadPressureFile("../data/LiftDisplacement.dat", ReadLiftDisplacement);
+	auto ldisplacement = std::make_shared<ChFunction_Recorder>();
+	for (int i = 0; i < ReadLiftDisplacement.size(); i++){
+		ldisplacement->AddPoint(ReadLiftDisplacement[i].mt, 0.1*ReadLiftDisplacement[i].mv);// 2 pistons, data in [bar]
+	}
+
+	mywl->SetPistonLiftImposedMotion(ldisplacement);
+}
+void SetChassisMovement(ChSystem* system, MyWheelLoader* mywl, std::shared_ptr<ChBody> ground, ChVector<> COG_chassis){
+
+	ChQuaternion<> z2x;
+	z2x.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(0, 1, 0));
+
+	
+	auto prism_fix2ch = std::make_shared<ChLinkLockPrismatic>();
+	prism_fix2ch->SetName("prismatic_ground2chassis");
+	prism_fix2ch->Initialize(mywl->chassis, ground, ChCoordsys<>(COG_chassis, z2x));
+	system->AddLink(prism_fix2ch);
+	auto lin_fix2ch = std::make_shared<ChLinkLinActuator>();
+	prism_fix2ch->SetName("linear_ground2chassis");
+	lin_fix2ch->Initialize(mywl->chassis, ground, false, ChCoordsys<>(COG_chassis, z2x), ChCoordsys<>(COG_chassis, z2x));//m2 is the master
+	lin_fix2ch->Set_lin_offset(Vlength(VNULL));
+	system->AddLink(lin_fix2ch);
+
+	std::vector<TimeSeries> DesiredSpeed;
+	ReadPressureFile("../data/WL_DesiredSpeedSmoothed.dat", DesiredSpeed);
+	SetSpeedProfile(lin_fix2ch, DesiredSpeed);
+}
 
 // =============================================================================
+// =============================================================================
 //	MAIN
+// =============================================================================
 // =============================================================================
 int main(int argc, char* argv[]){
 
