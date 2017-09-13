@@ -633,46 +633,6 @@ class MyWheelLoader {
 		lin_ch2lift->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
 		system.AddLink(lin_ch2lift);
 		
-#else
-		std::vector<TimeSeries> ReadLiftDisplacement;
-		ReadPressureFile("../data/LiftDisplacement.dat", ReadLiftDisplacement);
-		auto ldisplacement = std::make_shared<ChFunction_Recorder>();
-		for (int i = 0; i < ReadLiftDisplacement.size(); i++){
-			ldisplacement->AddPoint(ReadLiftDisplacement[i].mt, 0.1*ReadLiftDisplacement[i].mv);// 2 pistons, data in [bar]
-		}
-
-		lin_ch2lift = std::make_shared<ChLinkLinActuator>();
-		lin_ch2lift->SetName("linear_chassis2lift");
-		lin_ch2lift->Initialize(lift, chassis, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot22.Get_A_quaternion()));//m2 is the master
-		lin_ch2lift->Set_lin_offset(Vlength(INS_ch2lift - PIS_ch2lift));
-		//// temporary piston law for chassis2lift actuator -> it'll be set constant by default and changeable by accessor
-		//// Note : it is as displacement law
-		//auto leggel1 = std::make_shared<ChFunction_Const>();
-		//auto leggel2 = std::make_shared<ChFunction_Ramp>(); leggel2->Set_ang(+.015);
-		//auto leggel3 = std::make_shared<ChFunction_Const>();
-		//auto lift_law = std::make_shared<ChFunction_Sequence>(); lift_law->InsertFunct(leggel1, ta1, 1, true); lift_law->InsertFunct(leggel2, ta2 - ta1, 1., true); lift_law->InsertFunct(leggel3, ta3 - ta2, 1., true);
-		//auto lift_law_test = std::make_shared<ChFunction_Sequence>();
-		//lift_law_test->InsertFunct(legge1, 1.0, 1, true);
-		//lift_law_test->InsertFunct(legge2, 1.0, 1., true);
-		//lift_law_test->InsertFunct(legge3, 1.0, 1., true);
-		//auto lift_law_seq = std::make_shared<ChFunction_Repeat>();
-		//lift_law_seq->Set_fa(lift_law_test);
-		//lift_law_seq->Set_window_length(3.0);
-		//lift_law_seq->Set_window_start(0.0);
-		//lift_law_seq->Set_window_phase(3.0);
-		//auto lift_law_sine = std::make_shared<ChFunction_Sine>();
-		//lift_law_sine->Set_w(1.0472);
-		//lift_law_sine->Set_amp(.5*Vlength(INS_ch2lift - PIS_ch2lift));
-
-		//	//	ASSET FOR LINEAR ACTUATOR
-		lin_ch2lift->AddAsset(std::make_shared<ChPointPointSegment>());
-		//// test_law
-		//auto lift_law_testing = std::make_shared<ChFunction_Const>();
-		//lift_law_testing->Set_yconst(Vlength(VNULL));
-		//// end test_law
-
-		lin_ch2lift->Set_dist_funct(ldisplacement);
-		system.Add(lin_ch2lift);
 #endif
 
 	}
