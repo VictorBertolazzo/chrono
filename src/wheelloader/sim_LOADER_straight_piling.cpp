@@ -129,6 +129,48 @@ void OutputPOVRayData(ChSystemParallel* sys, int out_frame, double time) {
 }
 
 // =============================================================================
+//	ADDITIONAL FEATURES
+// =============================================================================
+// Time Series structure: utility to grab two columns file values(t_k,f(t_k)) extensively used in this project.
+struct TimeSeries {
+	TimeSeries() {}
+	TimeSeries(float t, float v)
+		: mt(t), mv(v) {}
+	float mt; float mv;
+};
+// Read Pressure function : converts a text file in a time series vector. 
+void ReadPressureFile(const std::string& filename, std::vector<TimeSeries>& profile) {
+	std::ifstream ifile(filename.c_str());
+	std::string line;
+
+	while (std::getline(ifile, line)) {
+		std::istringstream iss(line);
+		float ttime, vvalue;
+		iss >> ttime >> vvalue;
+		if (iss.fail())
+			break;
+		profile.push_back(TimeSeries(ttime, vvalue));
+	}
+	ifile.close();
+
+
+
+}
+// Impose forward velocity profile, and set displacement law consequently
+void SetSpeedProfile(std::shared_ptr<ChLinkLinActuator> act, std::vector<TimeSeries> speed){
+	auto chass_traj = std::make_shared<ChFunction_Recorder>();
+
+	chass_traj->AddPoint(0., 0.);
+	for (int i = 1; i < speed.size(); i++){
+		double pos = chass_traj->Get_y(speed[i - 1].mt) + speed[i].mv * (speed[i].mt - speed[i - 1].mt);
+		chass_traj->AddPoint(speed[i].mt, pos);
+		//target_speed->AddPoint(DesiredSpeed[i].mt, DesiredSpeed[i].mv);
+	}
+
+	act->Set_dist_funct(chass_traj);
+
+}
+// =============================================================================
 //	PLAYERS CREATION FUNCTIONS
 // =============================================================================
 std::shared_ptr<ChBody> CreateGround(ChSystem* system){
