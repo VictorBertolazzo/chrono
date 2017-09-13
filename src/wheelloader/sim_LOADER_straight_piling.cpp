@@ -338,17 +338,30 @@ int main(int argc, char* argv[]){
 	// --------------------------
 	ChSystemParallelNSC* system = new ChSystemParallelNSC;
 	SetSolverParameters(system);
+	
 	// --------------------------
 	// Create material and set its settings
 	// --------------------------
 	auto material_terrain = std::make_shared<ChMaterialSurfaceNSC>();
 	UpdateMaterialProperties(material_terrain);
+	
+	// --------------------------
+	// --------------------------
 	// Create the ground(terrain)
 	auto ground = CreateGround(system);
-	// Create the sandpile(spheres pyramid)
+	// Create the sandpile(spheres pyramid)--Calculate computational time to build it.
 	ChVector<> hdims(5.,5.,0.);
 	auto sandpile = CreateSandpile(system, material_terrain, hdims);
 	//Create the loader(mechanism only, with a fake chassis)
 	MyWheelLoader* loader = CreateLoader(system);
+	// --------------------------
+	// --------------------------
+
+	// --------------------------
+	// Set Chassis and Piston motion law.
+	// --------------------------
+	SetPistonsMovement(system, loader);
+	SetChassisMovement(system, loader, ground, ChVector<>(.0, .0, 1.575));
+
 	return 0;
 }
