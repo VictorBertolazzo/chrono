@@ -2,6 +2,8 @@ using namespace chrono;
 using namespace chrono::collision;
 
 #include "chrono/physics/ChLinkMarkers.h"
+#include "chrono/assets/ChPointPointDrawing.h"
+
 // Actuator test times : VALUES
 double ta1 = 2.00; double ta2 = 11.00; double ta3 = 15.00; double ta4 = 5.00; double ta5 = 12.00;
 // Actuator test times : TESTING IDEA
@@ -19,20 +21,6 @@ double damping_coef = 1;
 // ------------------CLASSES----------------------------------------------
 class MyWheelLoader {
     public:
-	// Data
-		// Functor class implementing the force for a ChLinkSpringCB link.
-		class MySpringForce : public ChLinkSpringCB::ForceFunctor {
-			double operator()(double time,          // current time
-				double rest_length,   // undeformed length
-				double length,        // current length
-				double vel,           // current velocity (positive when extending)
-				ChLinkSpringCB* link  // back-pointer to associated link
-				) override {
-				double force = -spring_coef * (length - rest_length) - damping_coef * vel;
-				return force;
-			}
-		};
-
 	// Handles to the bodies
 	std::shared_ptr<ChBodyAuxRef> lift;
 	std::shared_ptr<ChBodyAuxRef> rod;
@@ -167,33 +155,6 @@ class MyWheelLoader {
 
 			//bucket->AddAsset(std::make_shared<ChColorAsset>(0.5f, 0.0f, 0.0f));
 		}
-	}
-	// -------------------TIME SERIES STRUCTURE----------------------------
-	// Time Series structure: utility to grab two columns file values(t_k,f(t_k)) extensively used in this project.
-	struct TimeSeries {
-		TimeSeries() {}
-		TimeSeries(float t, float v)
-			: mt(t), mv(v) {}
-		float mt; float mv;
-	};
-	// -------------------READ PRESSURE FILE FUNCTION----------------------------
-	// Read Pressure function : converts a text file in a time series vector. 
-	void ReadPressureFile(const std::string& filename, std::vector<TimeSeries>& profile) {
-		std::ifstream ifile(filename.c_str());
-		std::string line;
-
-		while (std::getline(ifile, line)) {
-			std::istringstream iss(line);
-			float ttime, vvalue;
-			iss >> ttime >> vvalue;
-			if (iss.fail())
-				break;
-			profile.push_back(TimeSeries(ttime, vvalue));
-		}
-		ifile.close();
-
-
-
 	}
 	
 	
@@ -488,7 +449,7 @@ class MyWheelLoader {
 		// It's a fake body representing the rest of the vehicle in first simulations.
 		chassis = std::shared_ptr<ChBody>(system.NewBody());
 		system.AddBody(chassis);
-		chassis->SetBodyFixed(true);//temporary
+		//chassis->SetBodyFixed(true);//temporary
 		chassis->SetName("chassis");
 		chassis->SetIdentifier(0);
 		chassis->SetMass(2000.0);
