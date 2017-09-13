@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
 	std::vector<TimeSeries> DesiredSpeed;
 	ReadFile("../data/WL_DesiredSpeedSmoothed.dat", DesiredSpeed);
 	auto target_speed = std::make_shared<ChFunction_Recorder>();
-	for (int i = 0; i < SelectedGear.size(); i++){
+	for (int i = 0; i < DesiredSpeed.size(); i++){
 		target_speed->AddPoint(DesiredSpeed[i].mt, DesiredSpeed[i].mv);
 	}
 	// ---------------
