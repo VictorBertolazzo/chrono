@@ -26,6 +26,7 @@
 // STL Headers
 #include <iostream>
 #include <memory>
+#include <ctime>
 
 // Chrono::Engine header files
 #include "chrono/ChConfig.h"
@@ -43,6 +44,10 @@
 // Chrono::Parallel header files
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/collision/ChBroadphaseUtils.h"
+
+#ifdef CHRONO_OPENGL
+#include "chrono_opengl/ChOpenGLWindow.h"
+#endif
 
 // Custom functions 
 #include "utilities/ZBarMechanism.h"
@@ -197,8 +202,8 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 	m1->setDefaultSize(r_g);
 	gen.setBodyIdentifier(Id_g);
 	double r = r_g * 1.01;
-	ChVector<> center(0, 0, 2 * r);
-	double num_layers = 10;
+	ChVector<> center(7.5, 0, 2 * r);
+	double num_layers = 50;
 	for (int il = 0; il < num_layers; il++) {
 		gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
 		center.z() += 2 * r;
@@ -333,6 +338,14 @@ int main(int argc, char* argv[]){
 			return 1;
 		}
 	}
+
+	// --------------------------
+	// Initialize csv output file.
+	// --------------------------
+	utils::CSV_writer csv("\t");
+	csv.stream().setf(std::ios::scientific | std::ios::showpos);
+	csv.stream().precision(6);
+
 	// --------------------------
 	// Create system and set specific solver settings
 	// --------------------------
@@ -350,8 +363,12 @@ int main(int argc, char* argv[]){
 	// Create the ground(terrain)
 	auto ground = CreateGround(system);
 	// Create the sandpile(spheres pyramid)--Calculate computational time to build it.
-	ChVector<> hdims(5.,5.,0.);
+	ChVector<> hdims(2.,2.,0.);
+	int start_s = clock();
 	auto sandpile = CreateSandpile(system, material_terrain, hdims);
+	int stop_s = clock();
+	std::cout << "Sandpile creation computational time: " << (stop_s - start_s) / double(CLOCKS_PER_SEC) * 1000 << std::endl; 
+	std::cout << "Number of created particles: " << sandpile.getTotalNumBodies() << std::endl;
 	//Create the loader(mechanism only, with a fake chassis)
 	MyWheelLoader* loader = CreateLoader(system);
 	// --------------------------
@@ -362,6 +379,42 @@ int main(int argc, char* argv[]){
 	// --------------------------
 	SetPistonsMovement(system, loader);
 	SetChassisMovement(system, loader, ground, ChVector<>(.0, .0, 1.575));
+
+	// --------------------------
+	// Initialize OpenGL window..
+	// --------------------------
+#ifdef CHRONO_OPENGL
+	opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+	gl_window.Initialize(1280, 720, "Loader-Piling", system);
+	gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(7.5, 0, 0), ChVector<>(0, 0, 1));
+	gl_window.SetRenderMode(opengl::WIREFRAME);
+#endif
+
+
+
+	// Run simulation for specified time
+	int num_steps = std::ceil(time_end / time_step);
+	int out_steps = std::ceil((1 / time_step) / out_fps);
+	int out_frame = 0;
+	double time = 0;
+	for (int i = 0; i < num_steps; i++) {
+		if (i % out_steps == 0) {
+			OutputPOVRayData(system, out_frame, time);
+			out_frame++;
+		}
+		system->DoStepDynamics(time_step);
+		time += time_step;
+	}
+//
+//#ifdef CHRONO_OPENGL
+//	if (gl_window.Active())
+//	{
+//		gl_window.Render();
+//		std::cin.get();
+//	}
+//	else
+//		//break;
+//#endif
 
 	return 0;
 }
