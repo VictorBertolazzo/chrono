@@ -221,7 +221,11 @@ MyWheelLoader* CreateLoader(ChSystem* system){
 // =============================================================================
 //	OTHER SETTING FUNCTIONS
 // =============================================================================
-void OutputCSVdata(){};
+void OutputCSVdata(ChSystemParallel* sys, int out_frame, double time, utils::CSV_writer csv){
+	
+	csv.write_to_file(out_dir + "/output.dat");
+
+};
 void SetSolverParameters(ChSystemParallel* system){
 	// Set number of threads
 	int max_threads = CHOMPfunctions::GetNumProcs();
@@ -397,10 +401,44 @@ int main(int argc, char* argv[]){
 	int out_steps = std::ceil((1 / time_step) / out_fps);
 	int out_frame = 0;
 	double time = 0;
+
+		//utils::WriteMeshPovray("ZK-L550-boom.obj", "ZK-L550-boom", "../");
+		//utils::WriteMeshPovray("ZK-L550-linkage.obj", "ZK-L550-linkage", "../");
+		//utils::WriteMeshPovray("ZK-L550-connectingrod.obj","ZK-L550-connectingrod","../");
+		//utils::WriteMeshPovray("bucket-L550.obj", "bucket-L550", "../");
+
+// Simulation Loop
 	for (int i = 0; i < num_steps; i++) {
+
+		// Collect output data from modules.
+		ChVector<> pos_CG = loader->chassis->GetPos();
+		ChVector<> vel_CG = loader->chassis->GetPos();
+		vel_CG = loader->chassis->GetCoord().TransformDirectionParentToLocal(vel_CG);
+
+		double pos_lift = loader->lin_ch2lift->Get_dist_funct()->Get_y(time) + loader->lin_ch2lift->Get_lin_offset();
+		double pos_tilt = loader->lin_lift2rod->Get_dist_funct()->Get_y(time) + loader->lin_ch2lift->Get_lin_offset();
+
+		double ang_lift = loader->GetLiftArmPitchAngle();
+		double ang_tilt = loader->GetTiltBucketPitchAngle();
+
+		double fp_lift = loader->GetReactLiftForce();
+		double fp_tilt = loader->GetReactTiltForce();
+
+		// Save output data from modules on CSV writer.
+		csv << pos_CG.x() << pos_CG.y() << pos_CG.z();
+		csv << vel_CG.x() << vel_CG.y() << vel_CG.z();
+		csv << pos_lift << pos_tilt;
+		csv << ang_lift << ang_tilt;
+		csv << fp_lift << fp_tilt;
+		csv << std::endl;
+
+
 		if (i % out_steps == 0) {
 			OutputPOVRayData(system, out_frame, time);
 			out_frame++;
+
+			csv.write_to_file(out_dir + "/output.dat");
+
 		}
 		system->DoStepDynamics(time_step);
 		time += time_step;

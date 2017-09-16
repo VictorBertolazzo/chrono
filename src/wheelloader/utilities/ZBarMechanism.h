@@ -274,7 +274,7 @@ class MyWheelLoader {
 		lift_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-boom.obj", false, false);
 		auto lift_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		lift_mesh_shape->SetMesh(lift_mesh);
-		lift_mesh_shape->SetName("boom");
+		lift_mesh_shape->SetName("ZK-L550-boom");
 		lift->AddAsset(lift_mesh_shape);
 
 		// Collision Model().
@@ -341,7 +341,7 @@ class MyWheelLoader {
 		rocker_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-linkage.obj", false, false);// 
 		auto rocker_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		rocker_mesh_shape->SetMesh(rocker_mesh);
-		rocker_mesh_shape->SetName("rocker");
+		rocker_mesh_shape->SetName("ZK-L550-linkage");
 		rod->AddAsset(rocker_mesh_shape);
 		// Collision model
 
@@ -394,7 +394,7 @@ class MyWheelLoader {
 		connectingrod_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-connectingrod.obj", false, false);// 
 		auto connectingrod_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		connectingrod_mesh_shape->SetMesh(connectingrod_mesh);
-		connectingrod_mesh_shape->SetName("connecting rod");
+		connectingrod_mesh_shape->SetName("ZK-L550-connectingrod");
 		link->AddAsset(connectingrod_mesh_shape);
 		
 		// Collision model(WIP).
@@ -440,7 +440,7 @@ class MyWheelLoader {
 		bucket_mesh.LoadWavefrontMesh(out_dir + "data/bucket-L550.obj", false, false);
 		auto bucket_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		bucket_mesh_shape->SetMesh(bucket_mesh);
-		bucket_mesh_shape->SetName("bucket");
+		bucket_mesh_shape->SetName("bucket-L550");
 		bucket->AddAsset(bucket_mesh_shape);
 
 
