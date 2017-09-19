@@ -22,16 +22,8 @@
 
 //#pragma warning(disable: 4251)
 
+#include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
-
-
-// Chrono::Engine unit PYTHON version
-//
-// This is an integer, as 0xaabbccdd where
-// for example version 1.2.0 is 0x00010200
-
-#define CH_VERSION_PYPARSER_MODULE 0x00010200
-
 
 // When compiling this library, remember to define CH_API_COMPILE_PYPARSER
 // (so that the symbols with 'ChApiPYPARSER' in front of them will be

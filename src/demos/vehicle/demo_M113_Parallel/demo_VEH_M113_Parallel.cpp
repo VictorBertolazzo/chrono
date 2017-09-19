@@ -144,7 +144,7 @@ int bilateral_frame_interval = 100;
 // Output directories
 bool povray_output = false;
 
-const std::string out_dir = "../M113_PARALLEL";
+const std::string out_dir = GetChronoOutputPath() + "M113_PARALLEL";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 int out_fps = 60;
@@ -210,6 +210,8 @@ void progressbar(unsigned int x, unsigned int n, unsigned int w = 50) {
 
 // =============================================================================
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // -----------------
     // Initialize output
     // -----------------

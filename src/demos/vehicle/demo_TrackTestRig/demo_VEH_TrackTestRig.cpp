@@ -54,10 +54,12 @@ double render_step_size = 1.0 / 50;
 // Output (screenshot captures)
 bool img_output = false;
 
-const std::string out_dir = "../TRACK_TESTRIG";
+const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 
 // =============================================================================
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     ChTrackTestRig* rig = nullptr;
     ChVector<> attach_loc(0, 1, 0);
 

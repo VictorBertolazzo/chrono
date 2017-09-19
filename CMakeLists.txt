@@ -55,7 +55,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 
 project(Chrono)
 
-set(CHRONO_VERSION_MAJOR 2)
+set(CHRONO_VERSION_MAJOR 3)
 set(CHRONO_VERSION_MINOR 0)
 set(CHRONO_VERSION_PATCH 0)
 
@@ -65,6 +65,9 @@ set(CPACK_PACKAGE_VERSION "${CHRONO_VERSION}")
 set(CPACK_PACKAGE_VERSION_MAJOR "${CHRONO_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${CHRONO_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${CHRONO_VERSION_PATCH}")
+
+# Version as a hexadecimal integer of the form 0x00MMmmPP
+set(CH_VERSION 0x00030000)
 
 #-----------------------------------------------------------------------------
 # Location of additional CMake scripts

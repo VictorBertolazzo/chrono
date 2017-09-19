@@ -89,12 +89,14 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 double tend = 20.0;
 
 // Output directories (Povray only)
-const std::string out_dir = "../GENERIC_VEHICLE";
+const std::string out_dir = GetChronoOutputPath() + "GENERIC_VEHICLE";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // --------------------------
     // Create the various modules
     // --------------------------

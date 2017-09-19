@@ -24,6 +24,10 @@
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 #include "chrono/serialization/ChArchiveJSON.h"
+
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChFileutils.h"
+
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChMatrixDynamic.h"
@@ -512,10 +516,17 @@ void my_deserialization_example(ChArchiveIn& marchive)
 
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     GetLog() << "\n"
              << "CHRONO foundation classes demo: archives (serialization)\n\n";
 
+    // Create (if needed) output directory
+    const std::string out_dir = GetChronoOutputPath() + "DEMO_ARCHIVE";
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     //  Archives inherited from the base class ChArchiveOut can be
     // used to serialize objects, and streams inherited from ChArchiveIn
@@ -530,7 +541,8 @@ int main(int argc, char* argv[]) {
             // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
             //
 
-            ChStreamOutAsciiFile mfileo("foo_archive.txt");
+            std::string asciifile = out_dir + "/foo_archive.txt";
+            ChStreamOutAsciiFile mfileo(asciifile.c_str());
 
             // Create a binary archive, that uses the binary file as storage.
             ChArchiveAsciiDump marchiveout(mfileo);
@@ -545,7 +557,8 @@ int main(int argc, char* argv[]) {
             //
 
             {
-                ChStreamOutBinaryFile mfileo("foo_archive.dat");
+                std::string binfile = out_dir + "/foo_archive.dat";
+                ChStreamOutBinaryFile mfileo(binfile.c_str());
                 
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveOutBinary marchiveout(mfileo);
@@ -554,7 +567,8 @@ int main(int argc, char* argv[]) {
             }
 
             {
-                ChStreamInBinaryFile mfilei("foo_archive.dat");
+                std::string binfile = out_dir + "/foo_archive.dat";
+                ChStreamInBinaryFile mfilei(binfile.c_str());
                 
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveInBinary marchivein(mfilei);
@@ -570,7 +584,8 @@ int main(int argc, char* argv[]) {
             //
 
             {
-                ChStreamOutAsciiFile mfileo("foo_archive.json");
+                std::string jsonfile = out_dir + "/foo_archive.json";
+                ChStreamOutAsciiFile mfileo(jsonfile.c_str());
 
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveOutJSON marchiveout(mfileo);
@@ -580,7 +595,8 @@ int main(int argc, char* argv[]) {
 
             
             {
-                ChStreamInAsciiFile mfilei("foo_archive.json");
+                std::string jsonfile = out_dir + "/foo_archive.json";
+                ChStreamInAsciiFile mfilei(jsonfile.c_str());
 
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveInJSON marchivein(mfilei);

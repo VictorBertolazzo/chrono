@@ -95,11 +95,13 @@ std::string tire_file("hmmwv/tire/HMMWV_RigidTire.json");
 
 // Output collection
 bool collect_output = false;
-std::string out_dir = "../SUSPENSION_TEST_RIG";
+std::string out_dir = GetChronoOutputPath() + "SUSPENSION_TEST_RIG";
 double out_step_size = 1.0 / 100;
 
 // =============================================================================
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Use rigid wheels to actuate suspension.
     auto tire_L = std::make_shared<RigidTire>(vehicle::GetDataFile(tire_file));
     auto tire_R = std::make_shared<RigidTire>(vehicle::GetDataFile(tire_file));
