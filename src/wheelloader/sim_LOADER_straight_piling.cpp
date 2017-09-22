@@ -354,24 +354,25 @@ int main(int argc, char* argv[]){
 	// Create system and set specific solver settings
 	// --------------------------
 	ChSystemParallelNSC* system = new ChSystemParallelNSC;
+	system->Set_G_acc(ChVector<>(0, 0, -9.81));
 	SetSolverParameters(system);
-	
+
 	// --------------------------
 	// Create material and set its settings
 	// --------------------------
 	auto material_terrain = std::make_shared<ChMaterialSurfaceNSC>();
 	UpdateMaterialProperties(material_terrain);
-	
+
 	// --------------------------
 	// --------------------------
 	// Create the ground(terrain)
 	auto ground = CreateGround(system);
 	// Create the sandpile(spheres pyramid)--Calculate computational time to build it.
-	ChVector<> hdims(2.,2.,0.);
+	ChVector<> hdims(2., 2., 0.);
 	int start_s = clock();
 	auto sandpile = CreateSandpile(system, material_terrain, hdims);
 	int stop_s = clock();
-	std::cout << "Sandpile creation computational time: " << (stop_s - start_s) / double(CLOCKS_PER_SEC) * 1000 << std::endl; 
+	std::cout << "Sandpile creation computational time: " << (stop_s - start_s) / double(CLOCKS_PER_SEC) * 1000 << std::endl;
 	std::cout << "Number of created particles: " << sandpile.getTotalNumBodies() << std::endl;
 	//Create the loader(mechanism only, with a fake chassis)
 	MyWheelLoader* loader = CreateLoader(system);
@@ -402,12 +403,8 @@ int main(int argc, char* argv[]){
 	int out_frame = 0;
 	double time = 0;
 
-		//utils::WriteMeshPovray("ZK-L550-boom.obj", "ZK-L550-boom", "../");
-		//utils::WriteMeshPovray("ZK-L550-linkage.obj", "ZK-L550-linkage", "../");
-		//utils::WriteMeshPovray("ZK-L550-connectingrod.obj","ZK-L550-connectingrod","../");
-		//utils::WriteMeshPovray("bucket-L550.obj", "bucket-L550", "../");
 
-// Simulation Loop
+	// Simulation Loop
 	for (int i = 0; i < num_steps; i++) {
 
 		// Collect output data from modules.
@@ -442,17 +439,18 @@ int main(int argc, char* argv[]){
 		}
 		system->DoStepDynamics(time_step);
 		time += time_step;
+
+
+#ifdef CHRONO_OPENGL
+		if (gl_window.Active())
+		{
+			gl_window.Render();
+			//std::cin.get();
+		}
+		else
+			break;
+#endif
 	}
-//
-//#ifdef CHRONO_OPENGL
-//	if (gl_window.Active())
-//	{
-//		gl_window.Render();
-//		std::cin.get();
-//	}
-//	else
-//		//break;
-//#endif
 
 	return 0;
 }

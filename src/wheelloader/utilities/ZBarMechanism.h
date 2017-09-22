@@ -231,6 +231,7 @@ class MyWheelLoader {
 		system.Add(lift);
 		lift->SetBodyFixed(false);
 		lift->SetName("lift arm");
+		lift->SetIdentifier(1);
 
 		// Coordinates Definition
 		ChVector<> u1 = (POS_lift2bucket - POS_ch2lift).GetNormalized();
@@ -274,7 +275,7 @@ class MyWheelLoader {
 		lift_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-boom.obj", false, false);
 		auto lift_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		lift_mesh_shape->SetMesh(lift_mesh);
-		lift_mesh_shape->SetName("ZK-L550-boom");
+		lift_mesh_shape->SetName("boom");
 		lift->AddAsset(lift_mesh_shape);
 
 		// Collision Model().
@@ -295,7 +296,7 @@ class MyWheelLoader {
 		rod = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
 		system.Add(rod);
 		rod->SetName("rod arm");
-		rod->SetIdentifier(3);
+		rod->SetIdentifier(2);
 		// Coordinates Definition
 		ChVector<> u3 = (POS_rod2link - POS_lift2rod).GetNormalized();//absolute coords
 		ChVector<> w3 = Vcross(u3, VECT_Y).GetNormalized();//overkill
@@ -341,7 +342,7 @@ class MyWheelLoader {
 		rocker_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-linkage.obj", false, false);// 
 		auto rocker_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		rocker_mesh_shape->SetMesh(rocker_mesh);
-		rocker_mesh_shape->SetName("ZK-L550-linkage");
+		rocker_mesh_shape->SetName("linkage");
 		rod->AddAsset(rocker_mesh_shape);
 		// Collision model
 
@@ -394,7 +395,7 @@ class MyWheelLoader {
 		connectingrod_mesh.LoadWavefrontMesh(out_dir + "data/ZK-L550-connectingrod.obj", false, false);// 
 		auto connectingrod_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		connectingrod_mesh_shape->SetMesh(connectingrod_mesh);
-		connectingrod_mesh_shape->SetName("ZK-L550-connectingrod");
+		connectingrod_mesh_shape->SetName("connectingrod");
 		link->AddAsset(connectingrod_mesh_shape);
 		
 		// Collision model(WIP).
@@ -440,7 +441,7 @@ class MyWheelLoader {
 		bucket_mesh.LoadWavefrontMesh(out_dir + "data/bucket-L550.obj", false, false);
 		auto bucket_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		bucket_mesh_shape->SetMesh(bucket_mesh);
-		bucket_mesh_shape->SetName("bucket-L550");
+		bucket_mesh_shape->SetName("bucket");
 		bucket->AddAsset(bucket_mesh_shape);
 
 
