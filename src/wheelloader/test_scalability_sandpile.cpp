@@ -139,7 +139,6 @@ void AddCapsHulls(std::vector<Points> p_int, BucketSide side, std::shared_ptr<Ch
 	}
 }
 
-
 const std::string out_dir = "../";
 const std::string pov_dir = out_dir + "/POVRAY";
 const std::string flatten = out_dir + "/funnel_DEMP_c10";
@@ -167,13 +166,13 @@ bool broad_narr = true;
 // Tracking Flattening
 bool track_flatten = true;
 // --------------------------------------------------------------------------
-double radius_g = 0.01;
+double radius_g = 0.05;
 // --------------------------------------------------------------------------
 double r = 1.01 * radius_g;
 
 // Container dimensions
-double hdimX = 2.7;
-double hdimY = 2.7;
+double hdimX = 5.;
+double hdimY = 5.;
 double hdimZ = 0.5;
 double hthick = 0.25;
 
@@ -188,9 +187,9 @@ int num_layers = 18;
 // Terrain contact properties---Default Ones are commented out.
 float friction_terrain = 1.0f;// 
 float restitution_terrain = 0.0f;
-float coh_pressure_terrain = 0.f;// 0e3f;
+float coh_pressure_terrain = 10.f;// 0e3f;
 float coh_force_terrain = (float)(CH_C_PI * radius_g * radius_g) * coh_pressure_terrain;
-float rolling_friction = 0. * radius_g;//increasing rolling_friction results in lowering time_step, WHY?
+float rolling_friction = 0.1 * radius_g;//increasing rolling_friction results in lowering time_step, WHY?
 
 //// Number of bins for broad-phase
 int factor = 2;
@@ -202,12 +201,20 @@ int binsZ = 10;
 double Ra_d = 5.0*radius_g;//Distance from centers of particles.
 double Ra_r = 3.0*radius_g;//Default Size of particles.
 
+const std::string san_dir = out_dir + "/SCALABILITY";
 
 
 // ---------------------------FUNCTIONS--------------------------------
     // All functions are in UtilityFunctions.h file.
 // ---------------------------FUNCTIONS--------------------------------
 int main(int argc, char** argv) {
+
+
+
+	if (ChFileutils::MakeDirectory(san_dir.c_str()) < 0) {
+		std::cout << "Error creating directory " << san_dir << std::endl;
+		return 1;
+	}
 
 	///////////////////////////////////////////////////////////////Constructor Utilities
 	std::vector<Points> p_ext;
@@ -369,17 +376,13 @@ int main(int argc, char** argv) {
 
 
 	double time_end = 4.50;
-	double time_step = 1e-4;
-	double time_to_plot = 0.;
+	double time_step = 1e-3;
 
 	switch (workcase) {
 	case TestType::LAYER: {
-		double divide;
-		if (radius_g == 0.01){ divide = 4.35; }
-		else{ divide = 1.35; }
 
 		// Create particles in layers until reaching the desired number of particles
-		ChVector<> hdims(hdimX / divide - r, hdimY / divide - r, 0);
+		ChVector<> hdims(2.0, 2.0, 0);
 		ChVector<> center(0, 0, 2 * r);
 
 		for (int il = 0; il < num_layers; il++) {
@@ -388,12 +391,6 @@ int main(int argc, char** argv) {
 			// shrink uniformly the upper layer
 			hdims.x() -= 2 * r;
 			hdims.y() -= 2 * r;
-			// move the center abscissa by a 1*r 
-			// center.x() += r * pow(-1, il);
-			if (method == ChMaterialSurface::NSC){
-				time_step = 1e-3;//0.075e-3; 
-			}
-			if (radius_g == 0.05){ time_end = 20.50; }
 			std::cout << center.z() << std::endl;
 			if (center.z() > 1.){ break; }
 		}
@@ -413,10 +410,8 @@ int main(int argc, char** argv) {
 						  bucket->SetName("Bucket");
 						  bucket->SetMass(1305.0);//confirmed data
 						  bucket->SetInertiaXX(ChVector<>(200, 800, 200));//not confirmed data
-						  bucket->SetPos(ChVector<>(-2.0, 0., 2 * r));
-						  //bucket->SetFrame_COG_to_REF(ChFrame<> (bucket->GetFrame_REF_to_abs().GetInverse() * COG_bucket,QUNIT));
-						  //bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(.1, .0, .1), QUNIT));//tentative
-						  //bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(1., .0, .5), QUNIT));//tentative
+						  bucket->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(-4.0, 0., 2 * r), QUNIT));
+						  bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(.2, 0., 2 * r), QUNIT));
 						  // Create contact geometry.
 						  bucket->SetCollide(true);
 						  bucket->GetCollisionModel()->ClearModel();
@@ -437,6 +432,22 @@ int main(int argc, char** argv) {
 						  bucket->AddAsset(bucket_mesh_shape);
 
 
+						  ChQuaternion<> z2x;
+						  z2x.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(0, 1, 0));
+
+
+						  auto prism_fix2ch = std::make_shared<ChLinkLockPrismatic>();
+						  prism_fix2ch->SetName("prismatic_ground2chassis");
+						  prism_fix2ch->Initialize(bucket, container, ChCoordsys<>(bucket->GetPos(), z2x));
+						  system->AddLink(prism_fix2ch);
+						  auto lin_fix2ch = std::make_shared<ChLinkLinActuator>();
+						  lin_fix2ch->SetName("linear_ground2chassis");
+						  lin_fix2ch->Initialize(bucket, container, false, ChCoordsys<>(bucket->GetPos(), z2x), ChCoordsys<>(bucket->GetPos(), z2x));//m2 is the master
+						  lin_fix2ch->Set_lin_offset(Vlength(VNULL));
+						  system->AddLink(lin_fix2ch);
+						  auto speed_function = std::make_shared<ChFunction_Ramp>();
+						  speed_function->Set_ang(1);
+						  lin_fix2ch->Set_dist_funct(speed_function);
 
 
 						  unsigned int num_particles = gen.getTotalNumBodies();
@@ -457,7 +468,7 @@ int main(int argc, char** argv) {
 						  if (render) {
 							  opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 							  gl_window.Initialize(1280, 720, "Settling test", system);
-							  gl_window.SetCamera(ChVector<>(0, -1, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+							  gl_window.SetCamera(ChVector<>(0, -5., 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
 							  gl_window.SetRenderMode(opengl::WIREFRAME);
 						  }
 #endif
@@ -488,7 +499,15 @@ int main(int argc, char** argv) {
 
 						  double avkinenergy = 0.;
 
+						  ChVector<> bcforce ;
+						  std::vector<std::shared_ptr<ChForce> > bclist;
 
+						  // --------------------------
+						  // Initialize csv output file.
+						  // --------------------------
+						  utils::CSV_writer csv("\t");
+						  csv.stream().setf(std::ios::scientific | std::ios::showpos);
+						  csv.stream().precision(6);
 
 						  while (system->GetChTime() < time_end) {
 
@@ -499,6 +518,12 @@ int main(int argc, char** argv) {
 							  cum_narrow_time += system->GetTimerCollisionNarrow();
 							  cum_solver_time += system->GetTimerSolver();
 							  cum_update_time += system->GetTimerUpdate();
+
+							  bcforce = lin_fix2ch->Get_react_force();
+							  csv << system->GetChTime() << bcforce.x() << bcforce.y() << bcforce.z()<< std::endl;
+							  if (sim_frame % 50 == 0) {
+								  csv.write_to_file(san_dir + "/output_react_5cm.dat");
+							  }
 
 							  // VISUALIZATION-OPTIONAL
 #ifdef CHRONO_OPENGL
