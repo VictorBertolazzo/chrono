@@ -9,9 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Mike Taylor
+// Template: Radu Serban, Mike Taylor
 // =============================================================================
-// Modified: Victor Bertolazzo
+// Author: Victor Bertolazzo
 // =============================================================================
 //
 // Simple powertrain model for the Articulated Vehicle.

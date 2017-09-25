@@ -9,9 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Mike Taylor
+// Template: Radu Serban, Mike Taylor
 // =============================================================================
-// Authors: Victor Bertolazzo
+// Author: Victor Bertolazzo
 // =============================================================================
 //
 // Simple driveline model for a single axle open differential.

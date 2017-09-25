@@ -9,9 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Template: Radu Serban
 // =============================================================================
-// Modified: Victor Bertolazzo
+// Author: Victor Bertolazzo
 // =============================================================================
 
 // Main function for an articulated vehicle (steering applied to the joint
@@ -94,8 +94,8 @@ TireModelType tire_model = TireModelType::FIALA;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
-double terrainLength = 1000.0;  // size in X direction
-double terrainWidth = 1000.0;   // size in Y direction
+double terrainLength = 100.0;  // size in X direction
+double terrainWidth = 100.0;   // size in Y direction
 
 // Simulation step size
 double step_size = 0.001;
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
 	terrain.SetContactFrictionCoefficient(0.9f);
 	terrain.SetContactRestitutionCoefficient(0.01f);
 	terrain.SetContactMaterialProperties(2e7f, 0.3f);
-	terrain.SetColor(ChColor(0.5f, 0.5f, 1));
+	terrain.SetColor(ChColor(0.5f, 0.5f, 0.5f));
 	terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
 	terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
 
