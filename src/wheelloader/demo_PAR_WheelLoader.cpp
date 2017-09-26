@@ -58,7 +58,15 @@
 #include "subsystems/Articulated_Front.h"
 #include "subsystems/Articulated_Rear.h"
 
+#include "subsystems/WL_SimpleDriveline4WD.h"
+#include "subsystems/WL_SimpleMapPowertrain.h"
+#include "subsystems/WL_ShaftsPowertrain.h"
+
+#include "subsystems/WL_FialaTire.h"
+
 #include "utilities/UtilityFunctions.h"
+
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -167,6 +175,10 @@ const std::string pov_dir = out_dir + "/POVRAY";
 int out_fps = 60;
 
 // =============================================================================
+// Input file names for the path-follower driver model
+std::string steering_controller_file("generic/driver/SteeringController.json");
+std::string speed_controller_file("generic/driver/SpeedController.json");
+std::string path_file("paths/straight10km.txt");
 
 double CreateParticles(ChSystem* system) {
 	// Create a material
@@ -411,8 +423,11 @@ int main(int argc, char* argv[]) {
 	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_Dir.dat");
 
 	// No Steering, Throttle,Brake
-	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_NoSteer.dat");
+	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_NoSteer.dat");
 
+	auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
+	//auto path = ChBezierCurve::read(vehicle::GetDataFile("paths/WL_Path_First_Segment.dat"));// Uncomment to select real WL path.
+	ChPathFollowerDriver driver(front_side, vehicle::GetDataFile(steering_controller_file),	vehicle::GetDataFile(speed_controller_file), path, "my_path", 3.0);
 
 	driver.Initialize();
 
