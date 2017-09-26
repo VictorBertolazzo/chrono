@@ -544,14 +544,14 @@ int main(int argc, char* argv[]) {
 		double steering_input = driver.GetSteering();
 		double braking_input = driver.GetBraking();
 		powertrain_torque = powertrain.GetOutputTorque();
-		gear_input = gear->Get_y(time);
+		gear_input = (int)gear->Get_y(time);
 
 		tire_front_forces[0] = tire_FL->GetTireForce();
 		tire_front_forces[1] = tire_FR->GetTireForce();
 		tire_rear_forces[0] = tire_RL->GetTireForce();
 		tire_rear_forces[1] = tire_RR->GetTireForce();
 
-		driveshaft_speed = front_side.GetDriveshaftSpeed();
+		driveshaft_speed = driveline->GetDriveshaftSpeed();
 
 		WheelState wheel_FL = front_side.GetWheelState(FRONT_LEFT);
 		WheelState wheel_FR = front_side.GetWheelState(FRONT_RIGHT);
@@ -603,6 +603,8 @@ int main(int argc, char* argv[]) {
 
 		front_side.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_front_forces);
 		rear_side.Synchronize(time, steering_input, braking_input, tire_rear_forces);
+
+		driver.SetDesiredSpeed(target_speed->Get_y(time + 0.5));//Change target speed for successive Advance method.In this way speed is a function of time , v(t).
 
 		// Advance simulation for one timestep for all modules
 		driver.Advance(time_step);
