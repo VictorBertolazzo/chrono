@@ -438,13 +438,27 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i < SelectedGear.size(); i++){
 		gear->AddPoint(SelectedGear[i].mt, SelectedGear[i].mv);
 	}
-
+	
+	// Create Desired Speed Time Series -- Test file WL_DesiredSpeed.dat
+	std::vector<TimeSeries> DesiredSpeed;
+	ReadFile("../data/WL_DesSpeedShort.dat", DesiredSpeed);
+	auto target_speed = std::make_shared<ChFunction_Recorder>();
+	for (int i = 0; i < DesiredSpeed.size(); i++){
+		target_speed->AddPoint(DesiredSpeed[i].mt, DesiredSpeed[i].mv);
+	}
 
 	// Create and initialize the powertrain system
+	// Vehicle is 4WD indeed
+	auto driveline = std::make_shared<WL_SimpleDriveline4WD>("driveline");//WL_Driveline4WD works.
+	ChSuspensionList suspensions; suspensions.resize(2);
+	suspensions[0] = front_side.GetSuspension(0); suspensions[1] = rear_side.GetSuspension(0);
+	std::vector<int> driven_susp_indexes(2);//(ignored)
+	driveline->Initialize(front_side.GetChassisBody(), suspensions, driven_susp_indexes);
 
-	//Generic_SimplePowertrain powertrain;
-	Generic_SimpleMapPowertrain powertrain;
-	powertrain.Initialize(front_side.GetChassisBody(), front_side.GetDriveshaft());
+	// Create and initialize the powertrain system
+	// Vehicle is 4WD indeed
+	WL_SimpleMapPowertrain powertrain;
+	powertrain.Initialize(front_side.GetChassisBody(), driveline->GetDriveshaft());
 
 	// Create the front tires
 	std::unique_ptr<ChTire> tire_FL;
@@ -455,8 +469,8 @@ int main(int argc, char* argv[]) {
 		tire_FR = std::unique_ptr<ChTire>(new Generic_RigidTire("FR"));
 		break;
 	case TireModelType::FIALA:
-		tire_FL = std::unique_ptr<ChTire>(new Generic_FialaTire("FL"));
-		tire_FR = std::unique_ptr<ChTire>(new Generic_FialaTire("FR"));
+		tire_FL = std::unique_ptr<ChTire>(new WL_FialaTire("FL"));
+		tire_FR = std::unique_ptr<ChTire>(new WL_FialaTire("FR"));
 		break;
 	default:
 		std::cout << "Tire type not supported!" << std::endl;
@@ -477,8 +491,8 @@ int main(int argc, char* argv[]) {
 		tire_RR = std::unique_ptr<ChTire>(new Generic_RigidTire("RR"));
 		break;
 	case TireModelType::FIALA:
-		tire_RL = std::unique_ptr<ChTire>(new Generic_FialaTire("RL"));
-		tire_RR = std::unique_ptr<ChTire>(new Generic_FialaTire("RR"));
+		tire_RL = std::unique_ptr<ChTire>(new WL_FialaTire("RL"));
+		tire_RR = std::unique_ptr<ChTire>(new WL_FialaTire("RR"));
 		break;
 	default:
 		std::cout << "Tire type not supported!" << std::endl;
