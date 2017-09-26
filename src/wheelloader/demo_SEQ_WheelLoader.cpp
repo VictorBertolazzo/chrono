@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
 	// Create the front side
 	Articulated_Front front_side(false);
 	front_side.Initialize(ChCoordsys<>(initLoc, initRot));
-	front_side.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+	front_side.SetChassisVisualizationType(VisualizationType::MESH);
 	front_side.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
 	front_side.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
 	front_side.SetWheelVisualizationType(VisualizationType::NONE);
