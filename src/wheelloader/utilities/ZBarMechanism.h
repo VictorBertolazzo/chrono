@@ -104,7 +104,7 @@ class MyWheelLoader {
 			auto shape = std::make_shared<ChTriangleMeshShape>();
 			collision::ChConvexHullLibraryWrapper lh;
 			lh.ComputeHull(cloud, shape->GetMesh());
-			//bucket->AddAsset(shape);
+			bucket->AddAsset(shape);
 
 			//bucket->AddAsset(std::make_shared<ChColorAsset>(0.5f, 0.0f, 0.0f));
 		}
@@ -151,7 +151,7 @@ class MyWheelLoader {
 			auto shape = std::make_shared<ChTriangleMeshShape>();
 			collision::ChConvexHullLibraryWrapper lh;
 			lh.ComputeHull(cloud, shape->GetMesh());
-			//bucket->AddAsset(shape);
+			bucket->AddAsset(shape);
 
 			//bucket->AddAsset(std::make_shared<ChColorAsset>(0.5f, 0.0f, 0.0f));
 		}
@@ -415,7 +415,8 @@ class MyWheelLoader {
 		bucket->SetName("benna");
 		bucket->SetIdentifier(4);
 		bucket->SetMass(1305.0);//confirmed data
-		bucket->SetInertiaXX(ChVector<>(200, 800, 200));//not confirmed data
+		bucket->SetInertiaXX(ChVector<>(613+866, 433+866, 613+866));//not confirmed data
+		bucket->SetInertiaXY(ChVector<>(0, 0 , -433));//not confirmed data
 		//bucket->SetPos(POS_lift2bucket);
 		//bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(.1, .0, .1), QUNIT));
 		
@@ -438,12 +439,11 @@ class MyWheelLoader {
 
 		// Mesh Visualization
 		geometry::ChTriangleMeshConnected bucket_mesh;
-		bucket_mesh.LoadWavefrontMesh(out_dir + "data/bucket-L550.obj", false, false);
+		bucket_mesh.LoadWavefrontMesh(out_dir + "data/bucket_mod.obj", false, false);
 		auto bucket_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		bucket_mesh_shape->SetMesh(bucket_mesh);
 		bucket_mesh_shape->SetName("bucket");
-		bucket->AddAsset(bucket_mesh_shape);
-
+		//bucket->AddAsset(bucket_mesh_shape);
 
 
 		// CHASSIS
