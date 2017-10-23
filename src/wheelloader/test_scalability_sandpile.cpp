@@ -386,12 +386,12 @@ int main(int argc, char** argv) {
 		ChVector<> center(0, 0, 2 * r);
 
 		for (int il = 0; il < num_layers; il++) {
+			std::cout << "h = " << center.z() << std::endl;
 			gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
 			center.z() += 2 * r;
 			// shrink uniformly the upper layer
 			hdims.x() -= 2 * r;
 			hdims.y() -= 2 * r;
-			std::cout << center.z() << std::endl;
 			if (center.z() > 1.){ break; }
 		}
 
