@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
 						// Impose motion to the actuator -- Test file WL_DesiredSpeed.dat(Change file!)
 						std::vector<TimeSeries> DesiredSpeed;
 						ReadPressureFile("../data/WL_DesiredSpeedSmoothed.dat", DesiredSpeed);
-						SetSpeedProfile(lin_fix2ch, DesiredSpeed);
+						//SetSpeedProfile(lin_fix2ch, DesiredSpeed);
 
 
 						std::vector<TimeSeries> ReadTiltDisplacement;
