@@ -266,6 +266,8 @@ void SetBroadphaseParameters(ChSystemParallel* system, double num_particles, vec
 	system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
 	vec3 bins = collision::function_Compute_Grid_Resolution((int)num_particles / 8, real3(hdims.x,hdims.y,hdims.z), .1);
 	std::cout << "broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << std::endl;
+	system->GetSettings()->collision.bins_per_axis = vec3(bins.x, bins.y, bins.z);
+
 
 }
 void UpdateMaterialProperties(std::shared_ptr<ChMaterialSurfaceNSC> mat_ter){
@@ -374,6 +376,10 @@ int main(int argc, char* argv[]){
 	int stop_s = clock();
 	std::cout << "Sandpile creation computational time: " << (stop_s - start_s) / double(CLOCKS_PER_SEC) * 1000 << std::endl;
 	std::cout << "Number of created particles: " << sandpile.getTotalNumBodies() << std::endl;
+	
+	// Setting broadphase grid partition.
+	SetBroadphaseParameters(system, sandpile.getTotalNumBodies(), vec3(hdims.x(), hdims.y(), hdims.z()));
+
 	//Create the loader(mechanism only, with a fake chassis)
 	MyWheelLoader* loader = CreateLoader(system);
 	// --------------------------
@@ -438,7 +444,9 @@ int main(int argc, char* argv[]){
 
 		}
 		system->DoStepDynamics(time_step);
+		std::cout << "Time : " << time << std::endl;
 		time += time_step;
+		
 
 
 #ifdef CHRONO_OPENGL
