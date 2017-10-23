@@ -21,6 +21,10 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChAssetLevel.h"
+
 #include "chrono/physics/ChLinkBushing.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -78,6 +82,21 @@ Articulated_Rear::Articulated_Rear(std::shared_ptr<Articulated_Chassis> front) :
     m_chassis->AddAsset(cyl2);
 
     m_chassis->AddAsset(std::make_shared<ChColorAsset>(0.6f, 0.2f, 0.2f));
+
+	// Mesh Visualization
+	geometry::ChTriangleMeshConnected m_chassis_mesh;
+	m_chassis_mesh.LoadWavefrontMesh(chrono::GetChronoDataFile("L550-rear_body.obj"), false, false);
+	auto m_chassis_mesh_shape = std::make_shared<ChTriangleMeshShape>();
+	m_chassis_mesh_shape->SetMesh(m_chassis_mesh);
+	m_chassis_mesh_shape->SetName("Rear_body_mesh");
+	auto m_chassis_texture = std::make_shared<ChTexture>(GetChronoDataFile("L550-rear_body.PNG"));
+	auto m_chassis_asset = std::make_shared<ChAssetLevel>();
+	m_chassis_asset->AddAsset(m_chassis_mesh_shape);
+	m_chassis_asset->AddAsset(m_chassis_texture);
+	//m_chassis->AddAsset(m_chassis_asset);
+	m_chassis->AddAsset(m_chassis_mesh_shape);
+	m_chassis->AddAsset(m_chassis_texture);
+
 
     system->Add(m_chassis);
 
