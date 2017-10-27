@@ -69,7 +69,7 @@ TerrainType terrain_type = RIGID_TERRAIN;
 // Parameters for granular material
 // =============================================================================
 int Id_g = 100;
-double r_g = 1e-2;
+double r_g = 5e-2;
 double rho_g = 2500;
 double coh_pressure = 3e4;
 float mu_g = 0.9f;
@@ -98,16 +98,18 @@ int threads = 20;
 bool thread_tuning = false;
 
 // Total simulation duration.
-double time_end = 1;
+double time_end = 5.;
+// Heap Height.
+double height = 2;
 
 // Solver parameters
 double time_step = 1e-3;
 double tolerance = 1e-5;
 
-uint max_iteration_bilateral = 1000;
-uint max_iteration_normal = 0;
-uint max_iteration_sliding = 100;
-uint max_iteration_spinning = 0;
+uint max_iteration_bilateral = 50;
+uint max_iteration_normal = 5;
+uint max_iteration_sliding = 50;
+uint max_iteration_spinning = 50;
 
 float contact_recovery_speed = 1;
 
@@ -202,7 +204,7 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 	m1->setDefaultSize(r_g);
 	gen.setBodyIdentifier(Id_g);
 	double r = r_g * 1.01;
-	ChVector<> center(7.5, 0, 2 * r);
+	ChVector<> center(4.5, 0, 2 * r);
 	double num_layers = 50;
 	for (int il = 0; il < num_layers; il++) {
 		gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
@@ -210,7 +212,7 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 		hdims.x() -= 2 * r;
 		hdims.y() -= 2 * r;
 		std::cout << center.z() << std::endl;
-		if (center.z() > 1.){ break; }
+		if (center.z() > height){ break; }
 	}
 	return gen;
 };
@@ -262,11 +264,11 @@ void SetBroadphaseParameters(ChSystemParallel* system, double num_particles, vec
 	int factor = 2;
 	int binsX = (int)std::ceil(hdims.x / r_g) / factor;
 	int binsY = (int)std::ceil(hdims.y / r_g) / factor;
-	int binsZ = 1;
+	int binsZ = (int)std::ceil(height / r_g) / factor;
 	system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
 	vec3 bins = collision::function_Compute_Grid_Resolution((int)num_particles / 8, real3(hdims.x,hdims.y,hdims.z), .1);
 	std::cout << "broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << std::endl;
-	system->GetSettings()->collision.bins_per_axis = vec3(bins.x, bins.y, bins.z);
+	//system->GetSettings()->collision.bins_per_axis = vec3(bins.x, bins.y, bins.z);
 
 
 }
@@ -320,7 +322,7 @@ void SetChassisMovement(ChSystem* system, MyWheelLoader* mywl, std::shared_ptr<C
 	system->AddLink(lin_fix2ch);
 
 	std::vector<TimeSeries> DesiredSpeed;
-	ReadPressureFile("../data/WL_DesiredSpeedSmoothed.dat", DesiredSpeed);
+	ReadPressureFile("../data/WL_DesSpeedShort.dat", DesiredSpeed);
 	SetSpeedProfile(lin_fix2ch, DesiredSpeed);
 }
 
@@ -372,10 +374,10 @@ int main(int argc, char* argv[]){
 	// Create the sandpile(spheres pyramid)--Calculate computational time to build it.
 	ChVector<> hdims(2., 2., 0.);
 	int start_s = clock();
-	auto sandpile = CreateSandpile(system, material_terrain, hdims);
+		auto sandpile = CreateSandpile(system, material_terrain, hdims);
 	int stop_s = clock();
 	std::cout << "Sandpile creation computational time: " << (stop_s - start_s) / double(CLOCKS_PER_SEC) * 1000 << std::endl;
-	std::cout << "Number of created particles: " << sandpile.getTotalNumBodies() << std::endl;
+		std::cout << "Number of created particles: " << sandpile.getTotalNumBodies() << std::endl;
 	
 	// Setting broadphase grid partition.
 	SetBroadphaseParameters(system, sandpile.getTotalNumBodies(), vec3(hdims.x(), hdims.y(), hdims.z()));
@@ -415,7 +417,7 @@ int main(int argc, char* argv[]){
 
 		// Collect output data from modules.
 		ChVector<> pos_CG = loader->chassis->GetPos();
-		ChVector<> vel_CG = loader->chassis->GetPos();
+		ChVector<> vel_CG = loader->chassis->GetPos_dt();
 		vel_CG = loader->chassis->GetCoord().TransformDirectionParentToLocal(vel_CG);
 
 		double pos_lift = loader->lin_ch2lift->Get_dist_funct()->Get_y(time) + loader->lin_ch2lift->Get_lin_offset();
@@ -427,7 +429,7 @@ int main(int argc, char* argv[]){
 		double fp_lift = loader->GetReactLiftForce();
 		double fp_tilt = loader->GetReactTiltForce();
 
-		// Save output data from modules on CSV writer.
+		// Save output data from modules on CSV writer.I don't save time since time step is fixed.
 		csv << pos_CG.x() << pos_CG.y() << pos_CG.z();
 		csv << vel_CG.x() << vel_CG.y() << vel_CG.z();
 		csv << pos_lift << pos_tilt;
@@ -444,7 +446,7 @@ int main(int argc, char* argv[]){
 
 		}
 		system->DoStepDynamics(time_step);
-		std::cout << "Time : " << time << std::endl;
+		//std::cout << "Time : " << time << std::endl;
 		time += time_step;
 		
 
