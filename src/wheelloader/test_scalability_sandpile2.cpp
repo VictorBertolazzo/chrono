@@ -156,7 +156,7 @@ bool povray_output = false;
 // Material
 bool use_mat_properties = true;
 // Render 
-bool render = true;
+bool render = false;
 // Tracking Granule
 bool track_granule = false;
 // Roughness
@@ -166,7 +166,7 @@ bool broad_narr = true;
 // Tracking Flattening
 bool track_flatten = true;
 // --------------------------------------------------------------------------
-double radius_g = 0.05;
+double radius_g = 0.02;
 // --------------------------------------------------------------------------
 double r = 1.01 * radius_g;
 
@@ -182,7 +182,7 @@ double rho_g = 2500;
 double vol_g = (4.0 / 3) * CH_C_PI * radius_g * radius_g * radius_g;
 double mass_g = rho_g * vol_g;
 ChVector<> inertia_g = 0.4 * mass_g * radius_g * radius_g * ChVector<>(1, 1, 1);
-int num_layers = 18;
+int num_layers = 40;
 
 // Terrain contact properties---Default Ones are commented out.
 float friction_terrain = 1.0f;// 
@@ -410,7 +410,7 @@ int main(int argc, char** argv) {
 						  bucket->SetName("Bucket");
 						  bucket->SetMass(1305.0);//confirmed data
 						  bucket->SetInertiaXX(ChVector<>(200, 800, 200));//not confirmed data
-						  bucket->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(-4.0, 0., 2 * r), QUNIT));
+						  bucket->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(-3.0, 0., 2 * r), QUNIT));
 						  bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(.2, 0., 2 * r), QUNIT));
 						  // Create contact geometry.
 						  bucket->SetCollide(true);
@@ -502,7 +502,6 @@ int main(int argc, char** argv) {
 						  ChVector<> bcforce ;
 						  std::vector<std::shared_ptr<ChForce> > bclist;
 
-						  // --------------------------
 						  // Initialize csv output file.
 						  // --------------------------
 						  utils::CSV_writer csv("\t");
@@ -522,7 +521,7 @@ int main(int argc, char** argv) {
 							  bcforce = lin_fix2ch->Get_react_force();
 							  csv << system->GetChTime() << bcforce.x() << bcforce.y() << bcforce.z()<< std::endl;
 							  if (sim_frame % 50 == 0) {
-								  csv.write_to_file(san_dir + "/output_react_5cm.dat");
+								  csv.write_to_file(san_dir + "/output_react_2cm.dat");
 							  }
 
 							  // VISUALIZATION-OPTIONAL

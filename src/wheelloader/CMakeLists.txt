@@ -48,7 +48,9 @@ SET(MODELS
 #  test_normal
 #  test_normal_PAR
   test_PAR_rolling_friction
-  test_scalability_sandpile
+  test_scalability_sandpile1
+  test_scalability_sandpile2
+  test_scalability_sandpile5
   test_SEQ_rolling_friction
 #  utest_PAR_linactuator
   zBarlinkage
