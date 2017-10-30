@@ -348,17 +348,17 @@ int main(int argc, char* argv[]) {
 
 	auto ground = std::shared_ptr<ChBody>(terrain.GetGroundBody());
 
-	/////---------------------------OR CREATE A SIMPLE GROUND BODY------------------------
+	///---------------------------OR CREATE A SIMPLE GROUND BODY------------------------
 
-	//// Ground body
-	//auto ground = std::shared_ptr<ChBody>(system->NewBody());
-	//system->Add(ground);
-	//ground->SetIdentifier(-1); ground->SetName("Ground-Terrain");
-	//ground->SetBodyFixed(true);
-	//ground->SetCollide(true);
+	// Ground body
+	auto ground = std::shared_ptr<ChBody>(system->NewBody());
+	system->Add(ground);
+	ground->SetIdentifier(-1); ground->SetName("Ground-Terrain");
+	ground->SetBodyFixed(true);
+	ground->SetCollide(true);
 
-	//ground->SetMaterialSurface(mat_g);
-	//ground->GetCollisionModel()->ClearModel();
+	ground->SetMaterialSurface(mat_g);
+	ground->GetCollisionModel()->ClearModel();
 
 	//--------------------------COMMON GEOMETRY DEFINITION-----------------------
 	// Bottom box
@@ -423,11 +423,11 @@ int main(int argc, char* argv[]) {
 	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_Dir.dat");
 
 	// No Steering, Throttle,Brake
-	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_NoSteer.dat");
+	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_NoSteer.dat");
 
 	auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
 	//auto path = ChBezierCurve::read(vehicle::GetDataFile("paths/WL_Path_First_Segment.dat"));// Uncomment to select real WL path.
-	ChPathFollowerDriver driver(front_side, vehicle::GetDataFile(steering_controller_file),	vehicle::GetDataFile(speed_controller_file), path, "my_path", 3.0);
+	//ChPathFollowerDriver driver(front_side, vehicle::GetDataFile(steering_controller_file),	vehicle::GetDataFile(speed_controller_file), path, "my_path", 3.0);
 
 	driver.Initialize();
 
@@ -604,7 +604,7 @@ int main(int argc, char* argv[]) {
 		front_side.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_front_forces);
 		rear_side.Synchronize(time, steering_input, braking_input, tire_rear_forces);
 
-		driver.SetDesiredSpeed(target_speed->Get_y(time + 0.5));//Change target speed for successive Advance method.In this way speed is a function of time , v(t).
+		//driver.SetDesiredSpeed(target_speed->Get_y(time + 0.5));//Change target speed for successive Advance method.In this way speed is a function of time , v(t).
 
 		// Advance simulation for one timestep for all modules
 		driver.Advance(time_step);

@@ -380,7 +380,7 @@ int main(int argc, char* argv[]){
 		std::cout << "Number of created particles: " << sandpile.getTotalNumBodies() << std::endl;
 	
 	// Setting broadphase grid partition.
-	SetBroadphaseParameters(system, sandpile.getTotalNumBodies(), vec3(hdims.x(), hdims.y(), hdims.z()));
+		SetBroadphaseParameters(system, sandpile.getTotalNumBodies(), vec3(hdims.x(), hdims.y(), hdims.z()));
 
 	//Create the loader(mechanism only, with a fake chassis)
 	MyWheelLoader* loader = CreateLoader(system);

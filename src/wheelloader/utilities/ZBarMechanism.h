@@ -460,7 +460,7 @@ class MyWheelLoader {
 		// visualization properties
 		auto chassis_asset = std::make_shared<ChSphereShape>();//asset
 		chassis_asset->GetSphereGeometry().rad = .05;//asset
-		chassis->AddAsset(chassis_asset);
+		//chassis->AddAsset(chassis_asset);
 
 		
 
@@ -535,8 +535,7 @@ class MyWheelLoader {
 		//lin_lift2rod->Set_dist_funct(tdisplacement);
 
 		// Asset for the linear actuator
-		auto bp_asset = std::make_shared<ChPointPointSegment>();				//asset
-		lin_lift2rod->AddAsset(bp_asset);
+		lin_lift2rod->AddAsset(std::make_shared<ChPointPointSegment>());
 
 		system.AddLink(lin_lift2rod);
 		//-----------------------------------------------------------------------------------------------------//

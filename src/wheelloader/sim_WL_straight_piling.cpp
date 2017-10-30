@@ -500,8 +500,8 @@ int main(int argc, char* argv[]){
 	// --------------------------
 	auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
 	//auto path = ChBezierCurve::read(vehicle::GetDataFile("paths/WL_Path_First_Segment.dat"));// Uncomment to select real WL path.
-	ChPathFollowerDriver driver(front_side, vehicle::GetDataFile(steering_controller_file),	vehicle::GetDataFile(speed_controller_file), path, "my_path", 3.0);
-	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_NoSteer.dat");
+	//ChPathFollowerDriver driver(front_side, vehicle::GetDataFile(steering_controller_file),	vehicle::GetDataFile(speed_controller_file), path, "my_path", 3.0);
+	ChDataDriver driver(front_side, "../data/WL_Man_NoSteer.dat");
 	driver.Initialize();
 
 	// --------------------------
@@ -618,14 +618,14 @@ int main(int argc, char* argv[]){
 			// Select Direction(it should be called only at changes)
 
 			// Select Gear
-			powertrain.SetSelectedGear(gear_input);// Should it be a function of time as it is, ge(t), or position,ge(x,y) or speed,ge(v) ?
+		powertrain.SetSelectedGear(gear_input);// Should it be a function of time as it is, ge(t), or position,ge(x,y) or speed,ge(v) ?
 		powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
 		driveline->Synchronize(powertrain_torque);//Is the time info needed?no
 
 		front_side.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_front_forces);// powertrain_torque will be ignored since driveline is outside of ArticulatedVehicle(function overriding)
 		rear_side.Synchronize(time, steering_input, braking_input, tire_rear_forces);
-			driver.SetDesiredSpeed(target_speed->Get_y(time + 0.5));//Change target speed for successive Advance method.In this way speed is a function of time , v(t).// needed to translate in a function of position v(x,y), this is a path follower not a traj follower.// "look ahead" speed
+			//driver.SetDesiredSpeed(target_speed->Get_y(time + 0.5));//Change target speed for successive Advance method.In this way speed is a function of time , v(t).// needed to translate in a function of position v(x,y), this is a path follower not a traj follower.// "look ahead" speed
 
 		// --------------------------
 		// Advance simulation for one timestep for all modules

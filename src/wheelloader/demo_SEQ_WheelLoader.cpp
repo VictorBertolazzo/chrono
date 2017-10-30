@@ -90,7 +90,7 @@ ChVector<> initLoc(0, 0, 1.0);
 ChQuaternion<> initRot = Q_from_AngZ(0*CH_C_PI / 10);
 
 // Type of tire model (RIGID or FIALA)
-TireModelType tire_model = TireModelType::FIALA;
+TireModelType tire_model = TireModelType::RIGID;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
