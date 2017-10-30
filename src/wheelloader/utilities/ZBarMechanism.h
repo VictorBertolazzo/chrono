@@ -104,7 +104,7 @@ class MyWheelLoader {
 			auto shape = std::make_shared<ChTriangleMeshShape>();
 			collision::ChConvexHullLibraryWrapper lh;
 			lh.ComputeHull(cloud, shape->GetMesh());
-			bucket->AddAsset(shape);
+			//bucket->AddAsset(shape);
 
 			//bucket->AddAsset(std::make_shared<ChColorAsset>(0.5f, 0.0f, 0.0f));
 		}
@@ -151,7 +151,7 @@ class MyWheelLoader {
 			auto shape = std::make_shared<ChTriangleMeshShape>();
 			collision::ChConvexHullLibraryWrapper lh;
 			lh.ComputeHull(cloud, shape->GetMesh());
-			bucket->AddAsset(shape);
+			//bucket->AddAsset(shape);
 
 			//bucket->AddAsset(std::make_shared<ChColorAsset>(0.5f, 0.0f, 0.0f));
 		}
@@ -443,7 +443,7 @@ class MyWheelLoader {
 		auto bucket_mesh_shape = std::make_shared<ChTriangleMeshShape>();
 		bucket_mesh_shape->SetMesh(bucket_mesh);
 		bucket_mesh_shape->SetName("bucket");
-		//bucket->AddAsset(bucket_mesh_shape);
+		bucket->AddAsset(bucket_mesh_shape);
 
 
 		// CHASSIS
