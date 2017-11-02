@@ -71,7 +71,7 @@ TerrainType terrain_type = RIGID_TERRAIN;
 int Id_g = 100;
 double r_g = 5e-2;
 double rho_g = 2500;
-double coh_pressure = 3e1;
+double coh_pressure = 3e0;
 float mu_g = 0.9f;
 
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
@@ -98,7 +98,7 @@ int threads = 20;
 bool thread_tuning = false;
 
 // Total simulation duration.
-double time_end = 5.;
+double time_end = 8.;
 // Heap Height.
 double height = 2;
 
@@ -204,7 +204,7 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 	m1->setDefaultSize(r_g);
 	gen.setBodyIdentifier(Id_g);
 	double r = r_g * 1.01;
-	ChVector<> center(4.5, 0, 2 * r);
+	ChVector<> center(5.0, 0, 2 * r);
 	double num_layers = 50;
 	for (int il = 0; il < num_layers; il++) {
 		gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
