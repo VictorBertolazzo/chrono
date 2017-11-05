@@ -140,7 +140,6 @@ void AddCapsHulls(std::vector<Points> p_int, BucketSide side, std::shared_ptr<Ch
 }
 
 const std::string out_dir = "../";
-const std::string pov_dir = out_dir + "/POVRAY";
 const std::string flatten = out_dir + "/funnel_DEMP_c10";
 const std::string flatten_track = "funnel_DEMP_c10";
 
@@ -156,7 +155,7 @@ bool povray_output = false;
 // Material
 bool use_mat_properties = true;
 // Render 
-bool render = false;
+bool render = true;
 // Tracking Granule
 bool track_granule = false;
 // Roughness
@@ -202,10 +201,20 @@ double Ra_d = 5.0*radius_g;//Distance from centers of particles.
 double Ra_r = 3.0*radius_g;//Default Size of particles.
 
 const std::string san_dir = out_dir + "/SCALABILITY";
+const std::string pov_dir = san_dir + "/POVRAY";
+
+
 
 
 // ---------------------------FUNCTIONS--------------------------------
     // All functions are in UtilityFunctions.h file.
+
+void OutputPOVRayData(ChSystemParallel* sys, int out_frame, double time) {
+	char filename[100];
+	sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame);
+	utils::WriteShapesPovray(sys, filename);
+	std::cout << "time = " << time << std::flush << std::endl;
+}
 // ---------------------------FUNCTIONS--------------------------------
 int main(int argc, char** argv) {
 
@@ -213,6 +222,10 @@ int main(int argc, char** argv) {
 
 	if (ChFileutils::MakeDirectory(san_dir.c_str()) < 0) {
 		std::cout << "Error creating directory " << san_dir << std::endl;
+		return 1;
+	}
+	if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+		std::cout << "Error creating directory " << pov_dir << std::endl;
 		return 1;
 	}
 
@@ -334,6 +347,7 @@ int main(int argc, char** argv) {
 	// Bottom box
 	utils::AddBoxGeometry(container.get(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick),
 		ChQuaternion<>(1, 0, 0, 0), true);
+	/*
 	// Front box
 	utils::AddBoxGeometry(container.get(), ChVector<>(hthick, hdimY, hdimZ + hthick),
 		ChVector<>(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
@@ -345,7 +359,9 @@ int main(int argc, char** argv) {
 		ChVector<>(0, hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
 	// Right box
 	utils::AddBoxGeometry(container.get(), ChVector<>(hdimX, hthick, hdimZ + hthick),
-		ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
+		ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);//side wall
+	*/
+
 	container->GetCollisionModel()->BuildModel();
 
 	if (roughness) {
@@ -381,6 +397,11 @@ int main(int argc, char** argv) {
 	switch (workcase) {
 	case TestType::LAYER: {
 
+		// Side Wall
+		utils::AddBoxGeometry(container.get(), ChVector<>(0.375, 4.0, 2.0),
+			ChVector<>(2.5, 0, 2.0 - hthick), ChQuaternion<>(1, 0, 0, 0), true);//side wall
+		container->GetCollisionModel()->BuildModel();
+
 		// Create particles in layers until reaching the desired number of particles
 		ChVector<> hdims(2.0, 2.0, 0);
 		ChVector<> center(0, 0, 2 * r);
@@ -389,15 +410,18 @@ int main(int argc, char** argv) {
 			std::cout << "h = " << center.z() << std::endl;
 			gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
 			center.z() += 2 * r;
-			// shrink uniformly the upper layer
+			// shrink uniformly the upper layer: Update-->shrink only one side
 			hdims.x() -= 2 * r;
 			hdims.y() -= 2 * r;
-			if (center.z() > 1.){ break; }
+			center.x() += 2 * r;
+			if (center.z() > 2.){ break; }
 		}
 
 		
 		break;
+
 	}
+
 	}
 
 						  // ----------------------------------------------------------------------------------------------------------------------- //
@@ -410,7 +434,7 @@ int main(int argc, char** argv) {
 						  bucket->SetName("Bucket");
 						  bucket->SetMass(1305.0);//confirmed data
 						  bucket->SetInertiaXX(ChVector<>(200, 800, 200));//not confirmed data
-						  bucket->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(-3.0, 0., 2 * r), QUNIT));
+						  bucket->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(-4.0, 0., 2 * r), QUNIT));
 						  bucket->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(.2, 0., 2 * r), QUNIT));
 						  // Create contact geometry.
 						  bucket->SetCollide(true);
@@ -511,6 +535,14 @@ int main(int argc, char** argv) {
 						  while (system->GetChTime() < time_end) {
 
 							  system->DoStepDynamics(time_step);
+
+							  if (sim_frame % out_steps == 0) {
+								  OutputPOVRayData(system, out_frame, system->GetChTime());
+								  out_frame++;
+
+								  csv.write_to_file(out_dir + "/output.dat");
+
+							  }
 
 							  cum_sim_time += system->GetTimerStep();
 							  cum_broad_time += system->GetTimerCollisionBroad();
