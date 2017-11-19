@@ -191,6 +191,10 @@ std::shared_ptr<ChBody> CreateGround(ChSystem* system){
 	utils::AddBoxGeometry(ground.get(), ChVector<>(10., 10., 3.0), ChVector<>(0, 0, -3.0),
 		ChQuaternion<>(1, 0, 0, 0), true);
 	ground->GetCollisionModel()->BuildModel();
+	// Side Wall
+	utils::AddBoxGeometry(ground.get(), ChVector<>(0.375, 4.0, 2.0),
+		ChVector<>(7.5, 0, 2.0 - .25), ChQuaternion<>(1, 0, 0, 0), true);//side wall
+	ground->GetCollisionModel()->BuildModel();
 	ground->SetCollide(true);
 
 	return ground;
@@ -211,6 +215,7 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 		center.z() += 2 * r;
 		hdims.x() -= 2 * r;
 		hdims.y() -= 2 * r;
+		center.x() += 2 * r;
 		std::cout << center.z() << std::endl;
 		if (center.z() > height){ break; }
 	}
@@ -288,7 +293,7 @@ void SetPistonsMovement(ChSystem* system, MyWheelLoader* mywl){
 	ReadPressureFile("../data/TiltDisplacement.dat", ReadTiltDisplacement);
 	auto tdisplacement = std::make_shared<ChFunction_Recorder>();
 	for (int i = 0; i < ReadTiltDisplacement.size(); i++){
-		tdisplacement->AddPoint(ReadTiltDisplacement[i].mt, 0.1*ReadTiltDisplacement[i].mv);// 2 pistons, data in [bar]
+		tdisplacement->AddPoint(ReadTiltDisplacement[i].mt, ReadTiltDisplacement[i].mv);// 2 pistons, data in [bar]
 	}
 
 	mywl->SetPistonTiltImposedMotion(tdisplacement);
@@ -300,7 +305,7 @@ void SetPistonsMovement(ChSystem* system, MyWheelLoader* mywl){
 	ReadPressureFile("../data/LiftDisplacement.dat", ReadLiftDisplacement);
 	auto ldisplacement = std::make_shared<ChFunction_Recorder>();
 	for (int i = 0; i < ReadLiftDisplacement.size(); i++){
-		ldisplacement->AddPoint(ReadLiftDisplacement[i].mt, 0.1*ReadLiftDisplacement[i].mv);// 2 pistons, data in [bar]
+		ldisplacement->AddPoint(ReadLiftDisplacement[i].mt, ReadLiftDisplacement[i].mv);// 2 pistons, data in [bar]
 	}
 
 	mywl->SetPistonLiftImposedMotion(ldisplacement);
@@ -322,7 +327,7 @@ void SetChassisMovement(ChSystem* system, MyWheelLoader* mywl, std::shared_ptr<C
 	system->AddLink(lin_fix2ch);
 
 	std::vector<TimeSeries> DesiredSpeed;
-	ReadPressureFile("../data/WL_DesSpeedShort.dat", DesiredSpeed);
+	ReadPressureFile("../data/loadingSpeed.dat", DesiredSpeed);
 	SetSpeedProfile(lin_fix2ch, DesiredSpeed);
 }
 

@@ -528,7 +528,9 @@ class MyWheelLoader {
 		//		lin_lift2rod = std::unique_ptr<ChLinkMarkers>(new ChLinkLinActuator());
 		lin_lift2rod->SetName("linear_lift2rod");
 		lin_lift2rod->Initialize(rod, lift, false, ChCoordsys<>(POS_lift2lever, z2x >> rot11.Get_A_quaternion()), ChCoordsys<>(PIS_lift2lever, z2x >> rot11.Get_A_quaternion()));//m2 is the master
-		lin_lift2rod->Set_lin_offset(Vlength(POS_lift2lever - PIS_lift2lever));
+			//lin_lift2rod->Set_lin_offset(Vlength(POS_lift2lever - PIS_lift2lever));
+			lin_lift2rod->Set_lin_offset(0.0);
+		std::cout << "Tilt offset : " << lin_lift2rod->Get_lin_offset() << std::endl;
 
 		
 		// Line brought outside in main.cpp
@@ -555,8 +557,9 @@ class MyWheelLoader {
 		lin_ch2lift = std::make_shared<ChLinkLinActuator>();
 		lin_ch2lift->SetName("linear_chassis2lift");
 		lin_ch2lift->Initialize(lift, chassis, false, ChCoordsys<>(INS_ch2lift, z2x >> rot22.Get_A_quaternion()), ChCoordsys<>(PIS_ch2lift, z2x >> rot22.Get_A_quaternion()));//m2 is the master
-		lin_ch2lift->Set_lin_offset(Vlength(INS_ch2lift - PIS_ch2lift));
-
+			//lin_ch2lift->Set_lin_offset(Vlength(INS_ch2lift - PIS_ch2lift));
+			lin_ch2lift->Set_lin_offset(0.0);
+		std::cout << "Lift offset : " << lin_ch2lift->Get_lin_offset() << std::endl;
 		//	//	ASSET FOR LINEAR ACTUATOR
 		lin_ch2lift->AddAsset(std::make_shared<ChPointPointSegment>());
 		// Line brought outside in main.cpp
