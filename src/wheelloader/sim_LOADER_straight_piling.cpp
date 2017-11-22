@@ -100,7 +100,7 @@ bool thread_tuning = false;
 // Total simulation duration.
 double time_end = 8.;
 // Heap Height.
-double height = 2;
+double height = 3.0;
 
 // Solver parameters
 double time_step = 1e-3;
@@ -193,7 +193,7 @@ std::shared_ptr<ChBody> CreateGround(ChSystem* system){
 	ground->GetCollisionModel()->BuildModel();
 	// Side Wall
 	utils::AddBoxGeometry(ground.get(), ChVector<>(0.375, 4.0, 2.0),
-		ChVector<>(7.5, 0, 2.0 - .25), ChQuaternion<>(1, 0, 0, 0), true);//side wall
+		ChVector<>(10.5, 0, 2.0 - .25), ChQuaternion<>(1, 0, 0, 0), true);//side wall
 	ground->GetCollisionModel()->BuildModel();
 	ground->SetCollide(true);
 
@@ -208,7 +208,7 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 	m1->setDefaultSize(r_g);
 	gen.setBodyIdentifier(Id_g);
 	double r = r_g * 1.01;
-	ChVector<> center(5.0, 0, 2 * r);
+	ChVector<> center(7.0, 0, 2 * r);
 	double num_layers = 50;
 	for (int il = 0; il < num_layers; il++) {
 		gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
@@ -377,7 +377,7 @@ int main(int argc, char* argv[]){
 	// Create the ground(terrain)
 	auto ground = CreateGround(system);
 	// Create the sandpile(spheres pyramid)--Calculate computational time to build it.
-	ChVector<> hdims(2., 2., 0.);
+	ChVector<> hdims(3., 3., 0.);
 	int start_s = clock();
 		auto sandpile = CreateSandpile(system, material_terrain, hdims);
 	int stop_s = clock();
