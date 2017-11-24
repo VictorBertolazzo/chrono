@@ -488,7 +488,10 @@ int main(int argc, char* argv[]){
 	tire_RR->SetVisualizationType(VisualizationType::PRIMITIVES);
 	// --------------------------
 	// Attach the mechanism to the vehicle.
-	// --------------------------
+	// --------------------------MISSING
+
+
+
 
 	// --------------------------
 	// Set Chassis and Piston motion law.
