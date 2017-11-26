@@ -54,6 +54,7 @@ class WL_FialaTire : public ChFialaTire {
 
   private:
     static const double m_normalDamping;
+	static const double m_normalStiffness;
 
     static const std::string m_meshName;
     static const std::string m_meshFile;

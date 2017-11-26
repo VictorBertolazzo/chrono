@@ -11,7 +11,16 @@ double ta1 = 2.00; double ta2 = 11.00; double ta3 = 15.00; double ta4 = 5.00; do
 // Lift : constant until ta1, then positive displacement(piling) til ta2, at the constant til ta3;
 // chassis : FWD motion til ta1, stop until ta2, then RWD til ta3;
 // ------------------CLASSES----------------------------------------------
+
+
+
+//#define USE_PNEUMATIC 
+
+
+#ifdef USE_PNEUMATIC
 #include "Pneumatics.h"
+#endif
+
 #include "chrono/physics/ChLinkSpringCB.h"
 
 double spring_coef = 50;
@@ -35,7 +44,6 @@ class MyWheelLoader {
 	std::shared_ptr<ChLinkLockRevolute> rev_link2bucket;
 	std::shared_ptr<ChLinkLockRevolute> rev_ch2lift;
 
-	//#define USE_PNEUMATIC 
 
 #ifdef USE_PNEUMATIC
 	std::shared_ptr<myHYDRactuator> lin_ch2lift;		
@@ -160,7 +168,7 @@ class MyWheelLoader {
 	
 	// Constructor	
 
-	MyWheelLoader(ChSystem& system){
+	MyWheelLoader(ChSystem& system, ChCoordsys<> location){
 
 
 		///////////////////////////////////////////////////////////////Constructor Utilities
@@ -182,6 +190,11 @@ class MyWheelLoader {
 		materialDEM->SetFriction(0.4f);
 		materialDEM->SetAdhesion(0);  								// Magnitude of the adhesion in Constant adhesion model
 
+
+		//
+		ChFrame<> loader_to_abs(location);
+		// useless
+		//loader_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 		////////////////////////////////////////////////////////Links Position Data--Letter of the points refer to Schematics.vsd file.
 
 		ChVector<> POS_ch2lift(0., 0, 2.115);														//Rev chassis->lift--POINT [B]
@@ -215,7 +228,29 @@ class MyWheelLoader {
 		ChVector<> COG_link(ChVector<>(.718/2,0.,0.));					// Link body com-relative frame
 		ChVector<> COG_bucket(ChVector<>(.15,0.,.5));					// (not previously known location)
 
-		/// USEFUL Quaternions
+
+		///// Change from relative to absolute ref frame
+		POS_ch2lift = loader_to_abs.TransformLocalToParent(POS_ch2lift);
+		PIS_ch2lift = loader_to_abs.TransformLocalToParent(PIS_ch2lift);
+		PIS_lift2lever = loader_to_abs.TransformLocalToParent(PIS_lift2lever);
+		INS_ch2lift = loader_to_abs.TransformLocalToParent(INS_ch2lift);
+		POS_lift2bucket = loader_to_abs.TransformLocalToParent(POS_lift2bucket);
+		//POS_lift2bucket_lift = loader_to_abs.TransformLocalToParent(POS_lift2bucket_lift);
+		POS_lift2rod = loader_to_abs.TransformLocalToParent(POS_lift2rod);
+		//POS_lift2rod_lift = loader_to_abs.TransformLocalToParent(POS_lift2rod_lift);
+		POS_lift2lever = loader_to_abs.TransformLocalToParent(POS_lift2lever);
+		//POS_lift2lever_rod = loader_to_abs.TransformLocalToParent(POS_lift2lever_rod);
+		POS_rod2link = loader_to_abs.TransformLocalToParent(POS_rod2link);
+		//POS_rod2link_rod = loader_to_abs.TransformLocalToParent(POS_rod2link_rod);
+		POS_link2bucket = loader_to_abs.TransformLocalToParent(POS_link2bucket);
+		//POS_link2bucket_link = loader_to_abs.TransformLocalToParent(POS_link2bucket_link);
+		COG_chassis = loader_to_abs.TransformLocalToParent(COG_chassis);
+		COG_lift = loader_to_abs.TransformLocalToParent(COG_lift);
+		COG_rod = loader_to_abs.TransformLocalToParent(COG_rod);
+		COG_link = loader_to_abs.TransformLocalToParent(COG_link);
+		COG_bucket = loader_to_abs.TransformLocalToParent(COG_bucket);
+
+		/// USEFUL Quaternions-- not referenced to the abs frame yet(QUNIT argument at this time)
 		z2y.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));			// It rotates -90° about x axis--used in revolute-like joint definition
 		z2x.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(0, 1, 0));			// It rotates 90° about y axis--used in prismatic-like joint definition
 		y2x.Q_from_AngAxis(CH_C_PI_2, VECT_Z);							// It rotates 90° about z axis
@@ -453,7 +488,7 @@ class MyWheelLoader {
 		//chassis->SetBodyFixed(true);//temporary
 		chassis->SetName("chassis");
 		chassis->SetIdentifier(0);
-		chassis->SetMass(2000.0);
+		chassis->SetMass(20.0);
 		chassis->SetPos(COG_chassis);
 		chassis->SetPos_dt(ChVector<>(.0, .0, .0));// u=2.25m/s
 		chassis->SetInertiaXX(ChVector<>(500., 1000., 500.));

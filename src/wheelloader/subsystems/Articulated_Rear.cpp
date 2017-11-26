@@ -44,8 +44,8 @@ using namespace chrono::vehicle::generic;
 // -----------------------------------------------------------------------------
 
 const double Articulated_Rear::m_chassisMass = 7000;                 // chassis sprung mass
-const ChVector<> Articulated_Rear::m_chassisCOM(0, 0, 2.0);          // COM location
-const ChVector<> Articulated_Rear::m_chassisInertia(400, 800, 900);  // chassis inertia (roll,pitch,yaw)
+const ChVector<> Articulated_Rear::m_chassisCOM(-0.5, 0, 2.0);          // COM location
+const ChVector<> Articulated_Rear::m_chassisInertia(800, 800, 900);  // chassis inertia (roll,pitch,yaw)
 
 const ChVector<> Articulated_Rear::m_offset(2.0, 0, 0.5);  // connection to front side
 

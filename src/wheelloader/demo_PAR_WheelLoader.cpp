@@ -68,6 +68,11 @@
 
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
+
+// Custom functions 
+#include "utilities/ZBarMechanism.h"
+
+
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::vehicle;
@@ -110,9 +115,12 @@ double terrainHeight = 0;
 double terrainLength = 1000.0;  // size in X direction
 double terrainWidth = 1000.0;   // size in Y direction
 
+// Heap Height.
+double height = 4.0;
+
 // Parameters for granular material
 int Id_g = 100;
-double r_g = 0.02;
+double r_g = 0.05;
 double rho_g = 2500;
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
 double mass_g = rho_g * vol_g;
@@ -127,7 +135,7 @@ unsigned int num_particles = 30e3; //// about 12k per layer
 // -----------------------------------------------------------------------------
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(-hdimX + 4.5, 0, 1.0);//z=1
+ChVector<> initLoc(0., 0, 0.8);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Simple powertrain model
@@ -144,7 +152,7 @@ int threads = 20;
 bool thread_tuning = false;
 
 // Total simulation duration.
-double time_end = 105;
+double time_end = 7.5;
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
@@ -216,124 +224,174 @@ double CreateParticles(ChSystem* system) {
 
 	return center.z();
 }
+// Read Pressure function : converts a text file in a time series vector. 
+void ReadPressureFile(const std::string& filename, std::vector<TimeSeries>& profile) {
+	std::ifstream ifile(filename.c_str());
+	std::string line;
 
-
-// =============================================================================
-int main(int argc, char* argv[]) {
-	// -----------------
-	// Initialize output
-	// -----------------
-
-	if (povray_output) {
-		if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-			std::cout << "Error creating directory " << out_dir << std::endl;
-			return 1;
-		}
-
-		if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
-			std::cout << "Error creating directory " << pov_dir << std::endl;
-			return 1;
-		}
+	while (std::getline(ifile, line)) {
+		std::istringstream iss(line);
+		float ttime, vvalue;
+		iss >> ttime >> vvalue;
+		if (iss.fail())
+			break;
+		profile.push_back(TimeSeries(ttime, vvalue));
 	}
-
-	// --------------
-	// Create system.
-	// --------------
-
-#ifdef USE_SEQ
-	// ----  Sequential
-#ifdef USE_SMC
-	std::cout << "Create SMC system" << std::endl;
-	ChSystemSMC* system = new ChSystemSMC();
-#else
-	std::cout << "Create NSC system" << std::endl;
-	ChSystemNSC* system = new ChSystemNSC();
-#endif
-
-#else
-	// ----  Parallel
-#ifdef USE_SMC
-	std::cout << "Create Parallel SMC system" << std::endl;
-	ChSystemParallelSMC* system = new ChSystemParallelSMC();
-#else
-	std::cout << "Create Parallel NSC system" << std::endl;
-	ChSystemParallelNSC* system = new ChSystemParallelNSC();
-#endif
-
-#endif
-
-	system->Set_G_acc(ChVector<>(0, 0, -9.81));
+	ifile.close();
 
 
-	// ---------------------
-	// Edit system settings.
-	// ---------------------
 
-#ifdef USE_SEQ
+}
+// =============================================================================
+//	OTHER SETTING FUNCTIONS
+// =============================================================================
+void OutputCSVdata(ChSystemParallel* sys, int out_frame, double time, utils::CSV_writer csv){
 
-	////system->SetSolverType(ChSolver::Type::MINRES);
-	system->SetMaxItersSolverSpeed(50);
-	system->SetMaxItersSolverStab(50);
-	////system->SetTol(0);
-	////system->SetMaxPenetrationRecoverySpeed(1.5);
-	////system->SetMinBounceSpeed(2.0);
-	////system->SetSolverOverrelaxationParam(0.8);
-	////system->SetSolverSharpnessParam(1.0);
+	csv.write_to_file(out_dir + "/outputWL.dat");
 
-#else
-
+};
+void SetSolverParameters(ChSystemParallel* system){
 	// Set number of threads
 	int max_threads = CHOMPfunctions::GetNumProcs();
 	if (threads > max_threads)
 		threads = max_threads;
 	system->SetParallelThreadNumber(threads);
 	CHOMPfunctions::SetNumThreads(threads);
-	//omp_set_num_threads(threads);
 	std::cout << "Using " << threads << " threads" << std::endl;
 
 	system->GetSettings()->perform_thread_tuning = thread_tuning;
 
 	// Set solver parameters
-	system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
 	system->GetSettings()->solver.use_full_inertia_tensor = false;
 	system->GetSettings()->solver.tolerance = tolerance;
-
-#ifndef USE_SMC
 	system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+	system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
 	system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
 	system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
 	system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
 	system->GetSettings()->solver.alpha = 0;
-	system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-	system->ChangeSolverType(SolverType::APGD);
+	system->GetSettings()->solver.contact_recovery_speed = -1;
+	system->GetSettings()->solver.bilateral_clamp_speed = 1e8;
+	system->GetSettings()->solver.solver_type = SolverType::BB;
+	// Set collision parameters
 	system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
-#else
-	system->GetSettings()->solver.contact_force_model = ChSystemSMC::PlainCoulomb;
-#endif
-	// BRAODPHASE UTILS--still not used--future task
-	vec3 bins = function_Compute_Grid_Resolution(12000, real3(hdimX, hdimY, hdimZ), 1.);
+	system->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+	system->GetSettings()->collision.collision_envelope = 0.001;
+
+
+};
+void SetBroadphaseParameters(ChSystemParallel* system, double num_particles, vec3 hdims){
+	// Set broadphase parameters
+	system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 	int factor = 2;
-	int binsX = (int)std::ceil(hdimX / r_g) / factor;
-	int binsY = (int)std::ceil(hdimY / r_g) / factor;
-	int binsZ = 1;
-
+	int binsX = (int)std::ceil(hdims.x / r_g) / factor;
+	int binsY = (int)std::ceil(hdims.y / r_g) / factor;
+	int binsZ = (int)std::ceil(height / r_g) / factor;
 	system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
-	//system->GetSettings()->collision.bins_per_axis = bins;
+	vec3 bins = collision::function_Compute_Grid_Resolution((int)num_particles / 8, real3(hdims.x, hdims.y, hdims.z), .1);
+	std::cout << "broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << std::endl;
+	//system->GetSettings()->collision.bins_per_axis = vec3(bins.x, bins.y, bins.z);
+
+}
+void UpdateMaterialProperties(std::shared_ptr<ChMaterialSurfaceNSC> mat_ter){
+	mat_ter->SetFriction(mu_g);
+	mat_ter->SetRestitution(0.);
+	mat_ter->SetCohesion((float)0);
+	mat_ter->SetSpinningFriction((float)r_g / 100);
+	mat_ter->SetRollingFriction((float)r_g / 100);
+
+}
+// =============================================================================
+//	IMPOSED MOTION FUNCTIONS
+// =============================================================================
+void SetPistonsMovement(ChSystem* system, MyWheelLoader* mywl){
+	std::vector<TimeSeries> ReadTiltDisplacement;
+	ReadPressureFile("../data/TiltDisplacement.dat", ReadTiltDisplacement);
+	auto tdisplacement = std::make_shared<ChFunction_Recorder>();
+	for (int i = 0; i < ReadTiltDisplacement.size(); i++){
+		tdisplacement->AddPoint(ReadTiltDisplacement[i].mt, ReadTiltDisplacement[i].mv);// 2 pistons, data in [bar]
+	}
+
+	mywl->SetPistonTiltImposedMotion(tdisplacement);
 
 
 
-#endif
 
-	// Contact material
-#ifdef USE_SMC
-	auto mat_g = std::make_shared<ChMaterialSurfaceSMC>();
-	mat_g->SetYoungModulus(1e8f);
-	mat_g->SetFriction(mu_g);
-	mat_g->SetRestitution(0.4f);
-#else
-	auto mat_g = std::make_shared<ChMaterialSurfaceNSC>();
-	mat_g->SetFriction(mu_g);
-#endif
+	std::vector<TimeSeries> ReadLiftDisplacement;
+	ReadPressureFile("../data/LiftDisplacement.dat", ReadLiftDisplacement);
+	auto ldisplacement = std::make_shared<ChFunction_Recorder>();
+	for (int i = 0; i < ReadLiftDisplacement.size(); i++){
+		ldisplacement->AddPoint(ReadLiftDisplacement[i].mt, ReadLiftDisplacement[i].mv);// 2 pistons, data in [bar]
+	}
+
+	mywl->SetPistonLiftImposedMotion(ldisplacement);
+}
+// -----------------------------------------------------------------------------
+// Generate postprocessing output with current system state.
+// -----------------------------------------------------------------------------
+void OutputPOVRayData(ChSystemParallel* sys, int out_frame, double time) {
+	char filename[100];
+	sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame);
+	utils::WriteShapesPovray(sys, filename);
+	std::cout << "time = " << time << std::flush << std::endl;
+}
+utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurface> material_terrain, ChVector<> hdims){
+	// Create a particle generator and a mixture entirely made out of spheres
+	utils::Generator gen(system);
+	std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::SPHERE, 1);
+	m1->setDefaultMaterial(material_terrain);
+	m1->setDefaultDensity(rho_g);
+	m1->setDefaultSize(r_g);
+	gen.setBodyIdentifier(Id_g);
+	double r = r_g * 1.01;
+	ChVector<> center(8.0, 0, 2 * r);
+	double num_layers = 50;
+	for (int il = 0; il < num_layers; il++) {
+		gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
+		center.z() += 2 * r;
+		hdims.x() -= 2 * r;
+		hdims.y() -= 2 * r;
+		center.x() += 2 * r;
+		std::cout << center.z() << std::endl;
+		if (center.z() > height){ break; }
+	}
+	return gen;
+};
+// =============================================================================
+int main(int argc, char* argv[]) {
+	// --------------------------
+	// Create output directories.
+	// --------------------------
+	if (povray_output) {
+		if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+			std::cout << "Error creating directory " << out_dir << std::endl;
+			return 1;
+		}
+		if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+			std::cout << "Error creating directory " << pov_dir << std::endl;
+			return 1;
+		}
+	}
+
+	// --------------------------
+	// Initialize csv output file.
+	// --------------------------
+	utils::CSV_writer csv("\t");
+	csv.stream().setf(std::ios::scientific | std::ios::showpos);
+	csv.stream().precision(6);
+
+	// --------------------------
+	// Create system and set specific solver settings
+	// --------------------------
+	ChSystemParallelNSC* system = new ChSystemParallelNSC;
+	system->Set_G_acc(ChVector<>(0, 0, -9.81));
+	//SetSolverParameters(system);
+
+	// --------------------------
+	// Create material and set its settings
+	// --------------------------
+	auto material_terrain = std::make_shared<ChMaterialSurfaceNSC>();
+	UpdateMaterialProperties(material_terrain);
 
 	//---------------------CREATE THE TERRAIN----------------------------
 	
@@ -350,15 +408,15 @@ int main(int argc, char* argv[]) {
 
 	///---------------------------OR CREATE A SIMPLE GROUND BODY------------------------
 
-	// Ground body
-	auto ground = std::shared_ptr<ChBody>(system->NewBody());
-	system->Add(ground);
-	ground->SetIdentifier(-1); ground->SetName("Ground-Terrain");
-	ground->SetBodyFixed(true);
-	ground->SetCollide(true);
+	//// Ground body
+	//auto ground = std::shared_ptr<ChBody>(system->NewBody());
+	//system->Add(ground);
+	//ground->SetIdentifier(-1); ground->SetName("Ground-Terrain");
+	//ground->SetBodyFixed(true);
+	//ground->SetCollide(true);
 
-	ground->SetMaterialSurface(mat_g);
-	ground->GetCollisionModel()->ClearModel();
+	//ground->SetMaterialSurface(mat_g);
+	//ground->GetCollisionModel()->ClearModel();
 
 	//--------------------------COMMON GEOMETRY DEFINITION-----------------------
 	// Bottom box
@@ -392,6 +450,21 @@ int main(int argc, char* argv[]) {
 		// Modify initial location wrt granular terrain height
 		initLoc = initLoc + ChVector<>(0., 0., vertical_offset + .0);
 	}
+	
+	// --------------------------
+	// --------------------------
+	// Create the ground(terrain)
+	//auto ground = CreateGround(system);
+	// Create the sandpile(spheres pyramid)--Calculate computational time to build it.
+	ChVector<> hdims(4., 4., 0.);
+	int start_s = clock();
+	auto sandpile = CreateSandpile(system, material_terrain, hdims);
+	int stop_s = clock();
+	std::cout << "Sandpile creation computational time: " << (stop_s - start_s) / double(CLOCKS_PER_SEC) * 1000 << std::endl;
+	//std::cout << "Number of created particles: " << sandpile.getTotalNumBodies() << std::endl;
+
+	// Setting broadphase grid partition.
+	SetBroadphaseParameters(system, sandpile.getTotalNumBodies(), vec3(hdims.x(), hdims.y(), hdims.z()));
 
 	// --------------------------
 	// Construct the Wheel Loader vehicle
@@ -423,12 +496,13 @@ int main(int argc, char* argv[]) {
 	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_Dir.dat");
 
 	// No Steering, Throttle,Brake
-	ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_NoSteer.dat");
+	//ChDataDriver driver(front_side, "C:/Users/victo/Documents/chrono_fork_victor-build/bin/data/WL_Man_NoSteer.dat");
 
 	auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
 	//auto path = ChBezierCurve::read(vehicle::GetDataFile("paths/WL_Path_First_Segment.dat"));// Uncomment to select real WL path.
-	//ChPathFollowerDriver driver(front_side, vehicle::GetDataFile(steering_controller_file),	vehicle::GetDataFile(speed_controller_file), path, "my_path", 3.0);
-
+	ChPathFollowerDriver driver(front_side, vehicle::GetDataFile(steering_controller_file),	vehicle::GetDataFile(speed_controller_file), path, "my_path", 3.0);
+	//driver.SetThreshholdThrottle(0.0);
+	driver.GetSpeedController().SetGains(0.4, 0.2, 0.0);
 	driver.Initialize();
 
 	// Create Selected Gear Time Series-- Test file : WL_SelectedGear.dat
@@ -441,7 +515,7 @@ int main(int argc, char* argv[]) {
 	
 	// Create Desired Speed Time Series -- Test file WL_DesiredSpeed.dat
 	std::vector<TimeSeries> DesiredSpeed;
-	ReadFile("../data/WL_DesSpeedShort.dat", DesiredSpeed);
+	ReadFile("../data/loadingSpeed.dat", DesiredSpeed);
 	auto target_speed = std::make_shared<ChFunction_Recorder>();
 	for (int i = 0; i < DesiredSpeed.size(); i++){
 		target_speed->AddPoint(DesiredSpeed[i].mt, DesiredSpeed[i].mv);
@@ -505,6 +579,20 @@ int main(int argc, char* argv[]) {
 	tire_RR->SetVisualizationType(VisualizationType::PRIMITIVES);
 
 	
+
+	//////Create the loader(mechanism only, with a fake chassis that will be hinged to the vehicle)
+	//////I need front_side.GetLoaderPoint()
+	MyWheelLoader* loader = new MyWheelLoader(*system, ChCoordsys<>(std::static_pointer_cast<Articulated_Chassis>(front_side.GetChassis())->GetLoaderPoint(), QUNIT));
+
+	auto hinge = std::make_shared<ChLinkLockLock>();
+	hinge->Initialize(loader->chassis, front_side.GetChassisBody(), ChCoordsys<>(loader->chassis->GetPos(), QUNIT));
+	system->AddLink(hinge);
+	//	 --------------------------
+	//	 Set Chassis and Piston motion law.
+	//	 --------------------------
+	//
+	SetPistonsMovement(system, loader);
+
 	// ---------------
 	// Simulation loop
 	// ---------------
@@ -559,52 +647,55 @@ int main(int argc, char* argv[]) {
 		WheelState wheel_RL = rear_side.GetWheelState(FRONT_LEFT);
 		WheelState wheel_RR = rear_side.GetWheelState(FRONT_RIGHT);
 
-//
-//		// Output
-//		if (sim_frame == next_out_frame) {
-//			cout << endl;
-//			cout << "---- Frame:          " << out_frame + 1 << endl;
-//			cout << "     Sim frame:      " << sim_frame << endl;
-//			cout << "     Time:           " << time << endl;
-//			cout << "     Avg. contacts:  " << num_contacts / out_steps << endl;
-//			cout << "     Throttle input: " << throttle_input << endl;
-//			cout << "     Braking input:  " << braking_input << endl;
-//			cout << "     Steering input: " << steering_input << endl;
-//			cout << "     Execution time: " << exec_time << endl;
-//
-//			if (povray_output) {
-//				char filename[100];
-//				sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
-//				utils::WriteShapesPovray(system, filename);
-//			}
-//
-//			out_frame++;
-//			next_out_frame += out_steps;
-//			num_contacts = 0;
-//		}
+		//
+		//		// Output
+		//		if (sim_frame == next_out_frame) {
+		//			cout << endl;
+		//			cout << "---- Frame:          " << out_frame + 1 << endl;
+		//			cout << "     Sim frame:      " << sim_frame << endl;
+		//			cout << "     Time:           " << time << endl;
+		//			cout << "     Avg. contacts:  " << num_contacts / out_steps << endl;
+		//			cout << "     Throttle input: " << throttle_input << endl;
+		//			cout << "     Braking input:  " << braking_input << endl;
+		//			cout << "     Steering input: " << steering_input << endl;
+		//			cout << "     Execution time: " << exec_time << endl;
+		//
+		//			if (povray_output) {
+		//				char filename[100];
+		//				sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
+		//				utils::WriteShapesPovray(system, filename);
+		//			}
+		//
+		//			out_frame++;
+		//			next_out_frame += out_steps;
+		//			num_contacts = 0;
+		//		}
 
-//		// Release the vehicle chassis at the end of the hold time.
-//		if (vehicle.GetChassisBody()->GetBodyFixed() && time > time_hold) {
-//			std::cout << std::endl << "Release vehicle t = " << time << std::endl;
-//			vehicle.GetChassisBody()->SetBodyFixed(false);
-//		}
+		//		// Release the vehicle chassis at the end of the hold time.
+		//		if (vehicle.GetChassisBody()->GetBodyFixed() && time > time_hold) {
+		//			std::cout << std::endl << "Release vehicle t = " << time << std::endl;
+		//			vehicle.GetChassisBody()->SetBodyFixed(false);
+		//		}
 
 		// Update modules (process inputs from other modules)
 		driver.Synchronize(time);
-        //------------COMMENT IF TERRAIN NOT PRESENT
-		tire_FL->Synchronize(time, wheel_FL, terrain) ;
+		//------------COMMENT IF TERRAIN NOT PRESENT
+		terrain.Synchronize(time);
+		tire_FL->Synchronize(time, wheel_FL, terrain);
 		tire_FR->Synchronize(time, wheel_FR, terrain);
 		tire_RL->Synchronize(time, wheel_RL, terrain);
 		tire_RR->Synchronize(time, wheel_RR, terrain);
 
 		// Select Gear
-		powertrain.SetSelectedGear(gear_input);
+		//powertrain.SetSelectedGear(gear_input);
 		powertrain.Synchronize(time, throttle_input, driveshaft_speed);
+
+		driveline->Synchronize(powertrain_torque);//Is the time info needed?no
 
 		front_side.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_front_forces);
 		rear_side.Synchronize(time, steering_input, braking_input, tire_rear_forces);
 
-		//driver.SetDesiredSpeed(target_speed->Get_y(time + 0.5));//Change target speed for successive Advance method.In this way speed is a function of time , v(t).
+		driver.SetDesiredSpeed(target_speed->Get_y(time));//Change target speed for successive Advance method.In this way speed is a function of time , v(t).
 
 		// Advance simulation for one timestep for all modules
 		driver.Advance(time_step);
@@ -618,6 +709,18 @@ int main(int argc, char* argv[]) {
 
 		front_side.Advance(time_step);
 
+
+
+		// --------------------------
+		// Write output info on CSV file.
+		// --------------------------
+		if (sim_frame == next_out_frame) {
+			OutputPOVRayData(system, out_frame, time);
+			out_frame++;
+
+			csv.write_to_file(out_dir + "/output.dat");
+			next_out_frame += out_steps;
+		}
 #ifdef CHRONO_OPENGL
 		if (gl_window.Active())
 			gl_window.Render();
@@ -625,26 +728,23 @@ int main(int argc, char* argv[]) {
 			break;
 #endif
 
-//		progressbar(out_steps + sim_frame - next_out_frame + 1, out_steps);
-//
-//		// Periodically display maximum constraint violation
-//		if (monitor_bilaterals && sim_frame % bilateral_frame_interval == 0) {
-//			vehicle.LogConstraintViolations();
-//		}
-//
+		//		progressbar(out_steps + sim_frame - next_out_frame + 1, out_steps);
+		//
+		//		// Periodically display maximum constraint violation
+		//		if (monitor_bilaterals && sim_frame % bilateral_frame_interval == 0) {
+		//			vehicle.LogConstraintViolations();
+		//		}
+		//
 
 		// Update counters.
 		time += time_step;
 		sim_frame++;
 		exec_time += system->GetTimerStep();
 		num_contacts += system->GetNcontacts();
-		if (sim_frame == 85)// 172 if initLoc.z() == .5
-			GetLog() << "Stop here and debug"<< "\n";
 	}
-
-//	// Final stats
-//	std::cout << "==================================" << std::endl;
-//	std::cout << "Simulation time:   " << exec_time << std::endl;
+	// Final stats
+	std::cout << "==================================" << std::endl;
+	std::cout << "Simulation time:   " << exec_time << std::endl;
 //	std::cout << "Number of threads: " << threads << std::endl;
 
 	return 0;

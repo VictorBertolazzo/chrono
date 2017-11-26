@@ -30,8 +30,8 @@ using namespace chrono::vehicle;
 // Static variables
 // -----------------------------------------------------------------------------
 
-//const double WL_FialaTire::m_normalStiffness = 707.5;
-const double WL_FialaTire::m_normalDamping = 3100;//2.5869
+const double WL_FialaTire::m_normalStiffness = 707.5;
+const double WL_FialaTire::m_normalDamping = 6200; // 3100;//2.5869
 
 
 const std::string WL_FialaTire::m_meshName = "WL_tire_POV_geom";

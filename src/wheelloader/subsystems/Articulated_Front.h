@@ -45,8 +45,13 @@ class Articulated_Chassis : public chrono::vehicle::ChRigidChassis {
     const chrono::ChVector<>& GetLocalConnectionPoint() const { return m_offset; }
     chrono::ChVector<> GetConnectionPoint() const;
 
+	/// Return offset to loader connection.
+	const chrono::ChVector<>& GetLocalLoaderPoint() const { return m_pos_loader; }
+	chrono::ChVector<> GetLoaderPoint() const;
+
   private:
     static const chrono::ChVector<> m_offset;
+	static const chrono::ChVector<> m_pos_loader;
 
     chrono::ChMatrix33<> m_inertia;
 

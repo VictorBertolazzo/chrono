@@ -96,7 +96,7 @@ TerrainType terrain_type = RIGID_TERRAIN;
 int Id_g = 100;
 double r_g = 1e-2;
 double rho_g = 2500;
-double coh_pressure = 3e4;
+double coh_pressure = 0;
 float mu_g = 0.9f;
 
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
@@ -116,7 +116,7 @@ double terrainWidth = 1000.0;   // size in Y direction
 // =============================================================================
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(0., 0, 1.0);
+ChVector<> initLoc(-5.5, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Type of tire model (RIGID or FIALA)
@@ -259,7 +259,7 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 	return gen;
 };
 MyWheelLoader* CreateLoader(ChSystem* system){
-	MyWheelLoader* mywl = new MyWheelLoader(*system);
+	MyWheelLoader* mywl = new MyWheelLoader(*system, ChCoordsys<>(VNULL, QUNIT));
 	return mywl;
 };
 // =============================================================================
@@ -267,7 +267,7 @@ MyWheelLoader* CreateLoader(ChSystem* system){
 // =============================================================================
 void OutputCSVdata(ChSystemParallel* sys, int out_frame, double time, utils::CSV_writer csv){
 
-	csv.write_to_file(out_dir + "/output.dat");
+	csv.write_to_file(out_dir + "/outputWL.dat");
 
 };
 void SetSolverParameters(ChSystemParallel* system){
@@ -328,7 +328,7 @@ void SetPistonsMovement(ChSystem* system, MyWheelLoader* mywl){
 	ReadPressureFile("../data/TiltDisplacement.dat", ReadTiltDisplacement);
 	auto tdisplacement = std::make_shared<ChFunction_Recorder>();
 	for (int i = 0; i < ReadTiltDisplacement.size(); i++){
-		tdisplacement->AddPoint(ReadTiltDisplacement[i].mt, 0.1*ReadTiltDisplacement[i].mv);// 2 pistons, data in [bar]
+		tdisplacement->AddPoint(ReadTiltDisplacement[i].mt, ReadTiltDisplacement[i].mv);// 2 pistons, data in [bar]
 	}
 
 	mywl->SetPistonTiltImposedMotion(tdisplacement);
@@ -340,7 +340,7 @@ void SetPistonsMovement(ChSystem* system, MyWheelLoader* mywl){
 	ReadPressureFile("../data/LiftDisplacement.dat", ReadLiftDisplacement);
 	auto ldisplacement = std::make_shared<ChFunction_Recorder>();
 	for (int i = 0; i < ReadLiftDisplacement.size(); i++){
-		ldisplacement->AddPoint(ReadLiftDisplacement[i].mt, 0.1*ReadLiftDisplacement[i].mv);// 2 pistons, data in [bar]
+		ldisplacement->AddPoint(ReadLiftDisplacement[i].mt, ReadLiftDisplacement[i].mv);// 2 pistons, data in [bar]
 	}
 
 	mywl->SetPistonLiftImposedMotion(ldisplacement);
@@ -398,8 +398,7 @@ int main(int argc, char* argv[]){
 	int stop_s = clock();
 	std::cout << "Sandpile creation computational time: " << (stop_s - start_s) / double(CLOCKS_PER_SEC) * 1000 << std::endl;
 			//std::cout << "Number of created particles: " << sandpile.getTotalNumBodies() << std::endl;
-	//Create the loader(mechanism only, with a fake chassis)
-			//MyWheelLoader* loader = CreateLoader(system);
+	
 	// Create the vehicle(the whole wheel loader except the mechanism)
 	// --------------------------
 	// --------------------------
@@ -425,10 +424,10 @@ int main(int argc, char* argv[]){
 	terrain.SetColor(ChColor(0.5f, 0.5f, 0.5f));
 	terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
 	terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
-	//terrain.GetGroundBody()->GetCollisionModel()->ClearModel();
-	//auto ground = std::shared_ptr<ChBody>(terrain.GetGroundBody());
-	//utils::AddBoxGeometry(ground.get(), ChVector<>(terrainLength, terrainWidth, .25), ChVector<>(0, 0, -.25),ChQuaternion<>(1, 0, 0, 0), true);
-	//ground->GetCollisionModel()->BuildModel();
+	/*terrain.GetGroundBody()->GetCollisionModel()->ClearModel();
+	auto ground = std::shared_ptr<ChBody>(terrain.GetGroundBody());
+	utils::AddBoxGeometry(ground.get(), ChVector<>(terrainLength, terrainWidth, .25), ChVector<>(0, 0, -.25),ChQuaternion<>(1, 0, 0, 0), true);
+	ground->GetCollisionModel()->BuildModel();*/
 
 	// Create and initialize the powertrain system
 	// Vehicle is 4WD indeed
@@ -492,11 +491,19 @@ int main(int argc, char* argv[]){
 
 
 
+	//////Create the loader(mechanism only, with a fake chassis that will be hinged to the vehicle)
+	//////I need front_side.GetLoaderPoint()
+	MyWheelLoader* loader = new MyWheelLoader(*system, ChCoordsys<>(std::static_pointer_cast<Articulated_Chassis>(front_side.GetChassis())->GetLoaderPoint(), QUNIT));
 
-	// --------------------------
-	// Set Chassis and Piston motion law.
-	// --------------------------
-		//SetPistonsMovement(system, loader);
+	auto hinge = std::make_shared<ChLinkLockLock>();
+	hinge->Initialize(loader->chassis,front_side.GetChassisBody(),ChCoordsys<>(loader->chassis->GetPos(),QUNIT));
+	system->AddLink(hinge);
+
+//	 --------------------------
+//	 Set Chassis and Piston motion law.
+//	 --------------------------
+//
+		SetPistonsMovement(system, loader);
 
 	// --------------------------
 	// Set Path Follower settings.
@@ -521,7 +528,7 @@ int main(int argc, char* argv[]){
 	// Create Desired Speed Time Series -- Test file WL_DesiredSpeed.dat
 	// --------------------------
 	std::vector<TimeSeries> DesiredSpeed;
-	ReadPressureFile("../data/WL_DesiredSpeedSmoothed.dat", DesiredSpeed);
+	ReadPressureFile("../data/loadingSpeed.dat", DesiredSpeed);
 	auto target_speed = std::make_shared<ChFunction_Recorder>();
 	for (int i = 0; i < DesiredSpeed.size(); i++){
 		target_speed->AddPoint(DesiredSpeed[i].mt, DesiredSpeed[i].mv);
@@ -533,7 +540,7 @@ int main(int argc, char* argv[]){
 #ifdef CHRONO_OPENGL
 	opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 	gl_window.Initialize(1280, 720, "Wheel Loader-Piling Manouevre", system);
-	gl_window.SetCamera(ChVector<>(0, -15, 0), ChVector<>(0.0, 0, 0), ChVector<>(0, 0, 1));
+	gl_window.SetCamera(ChVector<>(-5, -7, 0), ChVector<>(-5, -6, 0), ChVector<>(0, 0, 1));
 	gl_window.SetRenderMode(opengl::WIREFRAME);
 #endif
 
@@ -614,9 +621,15 @@ int main(int argc, char* argv[]){
 		// --------------------------
 		time = front_side.GetSystem()->GetChTime();
 		driver.Synchronize(time);
-		terrain.Synchronize(time);
-		tire_FL->Synchronize(time, wheel_FL, terrain);tire_FR->Synchronize(time, wheel_FR, terrain);
-		tire_RL->Synchronize(time, wheel_RL, terrain);tire_RR->Synchronize(time, wheel_RR, terrain);
+		if (tire_model == TireModelType::FIALA)
+		{
+			terrain.Synchronize(time);
+
+			tire_FL->Synchronize(time, wheel_FL, terrain); tire_FR->Synchronize(time, wheel_FR, terrain);
+			tire_RL->Synchronize(time, wheel_RL, terrain); tire_RR->Synchronize(time, wheel_RR, terrain);
+		}
+
+
 
 			// Select Direction(it should be called only at changes)
 

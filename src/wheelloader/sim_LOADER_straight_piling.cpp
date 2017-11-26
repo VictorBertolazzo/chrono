@@ -221,10 +221,12 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 	}
 	return gen;
 };
-MyWheelLoader* CreateLoader(ChSystem* system){
-	MyWheelLoader* mywl = new MyWheelLoader(*system);
-	return mywl;
-};
+//MyWheelLoader* CreateLoader(ChSystem* system){
+//	MyWheelLoader* mywl = new MyWheelLoader(*system);
+//	return mywl;
+//};
+
+
 // =============================================================================
 //	OTHER SETTING FUNCTIONS
 // =============================================================================
@@ -388,8 +390,7 @@ int main(int argc, char* argv[]){
 		SetBroadphaseParameters(system, sandpile.getTotalNumBodies(), vec3(hdims.x(), hdims.y(), hdims.z()));
 
 	//Create the loader(mechanism only, with a fake chassis)
-	MyWheelLoader* loader = CreateLoader(system);
-	// --------------------------
+		MyWheelLoader* loader = new MyWheelLoader(*system, ChCoordsys<>(ChVector<>(0.,0.,0.), QUNIT));	// --------------------------
 	// --------------------------
 
 	// --------------------------

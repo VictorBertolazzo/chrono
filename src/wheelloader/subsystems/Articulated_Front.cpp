@@ -30,7 +30,7 @@ using namespace chrono::vehicle::generic;
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double Articulated_Chassis::m_mass = 7000;
+const double Articulated_Chassis::m_mass = 4000;
 const ChVector<> Articulated_Chassis::m_inertiaXX(400, 800, 900);
 const ChVector<> Articulated_Chassis::m_inertiaXY(0, 0, 0);
 const ChVector<> Articulated_Chassis::m_COM_loc(0, 0, 2.0);
@@ -38,6 +38,8 @@ const ChVector<> Articulated_Chassis::m_COM_loc(0, 0, 2.0);
 const ChCoordsys<> Articulated_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 const ChVector<> Articulated_Chassis::m_offset(-1.0, 0, 0.5);
+
+const ChVector<> Articulated_Chassis::m_pos_loader(-0.25, 0, 0.0); // Datasheet
 
 // -----------------------------------------------------------------------------
 // Chassis of the front side of the articulated vehicle
@@ -70,6 +72,10 @@ Articulated_Chassis::Articulated_Chassis(const std::string& name, bool fixed) : 
 
 ChVector<> Articulated_Chassis::GetConnectionPoint() const {
     return m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(m_offset);
+}
+
+ChVector<> Articulated_Chassis::GetLoaderPoint() const {
+	return m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(m_pos_loader);
 }
 
 // -----------------------------------------------------------------------------

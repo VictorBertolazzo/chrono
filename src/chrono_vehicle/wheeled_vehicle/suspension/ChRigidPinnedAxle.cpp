@@ -82,7 +82,10 @@ void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_axlePin = std::make_shared<ChLinkLockRevolute>();
     m_axlePin->SetNameString(m_name + "_axlePin");
     m_axlePin->Initialize(m_axleTube, chassis, rev_csys);
-    chassis->GetSystem()->AddLink(m_axlePin);
+	//m_axlePin->GetLimit_Rz()->Set_active(true);
+	//m_axlePin->GetLimit_Rz()->Set_max(+13 * CH_C_DEG_TO_RAD);
+	//m_axlePin->GetLimit_Rz()->Set_min(-13 * CH_C_DEG_TO_RAD);
+	chassis->GetSystem()->AddLink(m_axlePin);
 
     // Initialize left and right sides.
     InitializeSide(LEFT, chassis, m_pointsL, left_ang_vel);
