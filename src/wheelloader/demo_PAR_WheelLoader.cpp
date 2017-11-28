@@ -112,8 +112,8 @@ double hdimZ = 0.5;
 double hthick = 0.25;
 // Rigid terrain dimensions
 double terrainHeight = 0;
-double terrainLength = 1000.0;  // size in X direction
-double terrainWidth = 1000.0;   // size in Y direction
+double terrainLength = 10.0;  // size in X direction
+double terrainWidth = 10.0;   // size in Y direction
 
 // Heap Height.
 double height = 4.0;
@@ -288,9 +288,9 @@ void SetBroadphaseParameters(ChSystemParallel* system, double num_particles, vec
 	int binsY = (int)std::ceil(hdims.y / r_g) / factor;
 	int binsZ = (int)std::ceil(height / r_g) / factor;
 	system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
-	vec3 bins = collision::function_Compute_Grid_Resolution((int)num_particles / 8, real3(hdims.x, hdims.y, hdims.z), .1);
+	vec3 bins = collision::function_Compute_Grid_Resolution((int)num_particles / 8, real3(hdims.x, hdims.y, height), .1);
 	std::cout << "broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << std::endl;
-	//system->GetSettings()->collision.bins_per_axis = vec3(bins.x, bins.y, bins.z);
+	system->GetSettings()->collision.bins_per_axis = vec3(bins.x, bins.y, bins.z);
 
 }
 void UpdateMaterialProperties(std::shared_ptr<ChMaterialSurfaceNSC> mat_ter){
@@ -464,7 +464,7 @@ int main(int argc, char* argv[]) {
 	//std::cout << "Number of created particles: " << sandpile.getTotalNumBodies() << std::endl;
 
 	// Setting broadphase grid partition.
-	SetBroadphaseParameters(system, sandpile.getTotalNumBodies(), vec3(hdims.x(), hdims.y(), hdims.z()));
+	//SetBroadphaseParameters(system, sandpile.getTotalNumBodies(), vec3(hdims.x(), hdims.y(), hdims.z()));
 
 	// --------------------------
 	// Construct the Wheel Loader vehicle
@@ -625,7 +625,15 @@ int main(int argc, char* argv[]) {
 	double steering_input;
 	double braking_input;
 	double gear_input;
-	
+	// --------------------------
+	// Output Loader data variables.
+	// --------------------------
+	double pos_lift; double pos_tilt;
+	double ang_lift; double ang_tilt;
+	double fp_lift; double fp_tilt;
+
+
+
 	while (time < time_end) {
 		// Collect output data from modules
 		double throttle_input = driver.GetThrottle();
@@ -710,7 +718,13 @@ int main(int argc, char* argv[]) {
 		front_side.Advance(time_step);
 
 
-
+		// --------------------------
+		// Save output data from modules on CSV writer.
+		// --------------------------
+		csv << pos_lift << pos_tilt;
+		csv << ang_lift << ang_tilt;
+		csv << fp_lift << fp_tilt;
+		csv << std::endl;
 		// --------------------------
 		// Write output info on CSV file.
 		// --------------------------
