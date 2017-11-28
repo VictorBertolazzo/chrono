@@ -175,7 +175,7 @@ bool monitor_bilaterals = false;
 int bilateral_frame_interval = 100;
 
 // Output directories
-bool povray_output = false;
+bool povray_output = true;
 
 const std::string out_dir = "../WL";
 const std::string pov_dir = out_dir + "/POVRAY";
