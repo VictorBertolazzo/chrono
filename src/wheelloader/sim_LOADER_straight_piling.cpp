@@ -71,7 +71,7 @@ TerrainType terrain_type = RIGID_TERRAIN;
 int Id_g = 100;
 double r_g = 5e-2;
 double rho_g = 2500;
-double coh_pressure = 0;
+double coh_pressure = 30;
 float mu_g = 0.9f;
 
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
