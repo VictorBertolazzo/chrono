@@ -112,8 +112,8 @@ double hdimZ = 0.5;
 double hthick = 0.25;
 // Rigid terrain dimensions
 double terrainHeight = 0;
-double terrainLength = 10.0;  // size in X direction
-double terrainWidth = 10.0;   // size in Y direction
+double terrainLength = 20.0;  // size in X direction
+double terrainWidth = 20.0;   // size in Y direction
 
 // Heap Height.
 double height = 4.0;
@@ -420,7 +420,7 @@ int main(int argc, char* argv[]) {
 
 	//--------------------------COMMON GEOMETRY DEFINITION-----------------------
 	// Bottom box
-	utils::AddBoxGeometry(ground.get(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick),
+	utils::AddBoxGeometry(ground.get(), ChVector<>(terrainLength, terrainWidth, hthick), ChVector<>(0, 0, -hthick),
 		ChQuaternion<>(1, 0, 0, 0), true);
 	if (terrain_type == GRANULAR_TERRAIN) {
 		// Front box
