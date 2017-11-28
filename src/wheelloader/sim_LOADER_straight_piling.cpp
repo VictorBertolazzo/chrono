@@ -188,7 +188,7 @@ std::shared_ptr<ChBody> CreateGround(ChSystem* system){
 	ground->SetName("ground");
 	ground->GetCollisionModel()->ClearModel();
 	// Bottom box
-	utils::AddBoxGeometry(ground.get(), ChVector<>(10., 10., 3.0), ChVector<>(0, 0, -3.0),
+	utils::AddBoxGeometry(ground.get(), ChVector<>(20., 20., 3.0), ChVector<>(0, 0, -3.0),
 		ChQuaternion<>(1, 0, 0, 0), true);
 	ground->GetCollisionModel()->BuildModel();
 	// Side Wall
