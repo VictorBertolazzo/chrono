@@ -71,7 +71,7 @@ TerrainType terrain_type = RIGID_TERRAIN;
 int Id_g = 100;
 double r_g = 5e-2;
 double rho_g = 2500;
-double coh_pressure = 30;
+double coh_pressure = 3;
 float mu_g = 0.9f;
 
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
@@ -84,7 +84,7 @@ double coh_force = CH_C_PI * r_g * r_g * coh_pressure;
 // =============================================================================
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(0., 0, 1.0);
+ChVector<> initLoc(-1., 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // =============================================================================
@@ -111,7 +111,7 @@ uint max_iteration_normal = 5;
 uint max_iteration_sliding = 50;
 uint max_iteration_spinning = 50;
 
-float contact_recovery_speed = 1;
+float contact_recovery_speed = -1;
 
 // =============================================================================
 //	OUTPUT
