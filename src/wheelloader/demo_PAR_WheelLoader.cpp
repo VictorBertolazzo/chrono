@@ -135,7 +135,7 @@ unsigned int num_particles = 30e3; //// about 12k per layer
 // -----------------------------------------------------------------------------
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(0., 0, 0.8);
+ChVector<> initLoc(-1., 0, 0.8);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Simple powertrain model
