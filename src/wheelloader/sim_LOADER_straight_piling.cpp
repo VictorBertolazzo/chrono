@@ -71,7 +71,7 @@ TerrainType terrain_type = RIGID_TERRAIN;
 int Id_g = 100;
 double r_g = 5e-2;
 double rho_g = 2500;
-double coh_pressure = 3;
+double coh_pressure = 300;
 float mu_g = 0.9f;
 
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
@@ -84,7 +84,7 @@ double coh_force = CH_C_PI * r_g * r_g * coh_pressure;
 // =============================================================================
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(-1., 0, 1.0);
+ChVector<> initLoc(-1.5, 0, 0.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // =============================================================================
@@ -208,14 +208,14 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 	m1->setDefaultSize(r_g);
 	gen.setBodyIdentifier(Id_g);
 	double r = r_g * 1.01;
-	ChVector<> center(8.0, 0, 2 * r);
+	ChVector<> center(8.0, 0, r);
 	double num_layers = 50;
 	for (int il = 0; il < num_layers; il++) {
 		gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
 		center.z() += 2 * r;
 		hdims.x() -= 2 * r;
 		hdims.y() -= 2 * r;
-		center.x() += 2 * r;
+		center.x() += 2 * r_g + 0.0005;
 		std::cout << center.z() << std::endl;
 		if (center.z() > height){ break; }
 	}
@@ -390,7 +390,7 @@ int main(int argc, char* argv[]){
 		SetBroadphaseParameters(system, sandpile.getTotalNumBodies(), vec3(hdims.x(), hdims.y(), hdims.z()));
 
 	//Create the loader(mechanism only, with a fake chassis)
-		MyWheelLoader* loader = new MyWheelLoader(*system, ChCoordsys<>(ChVector<>(0.,0.,0.), QUNIT));	// --------------------------
+		MyWheelLoader* loader = new MyWheelLoader(*system, ChCoordsys<>(initLoc, initRot));	// --------------------------
 	// --------------------------
 
 	// --------------------------
