@@ -193,7 +193,7 @@ std::shared_ptr<ChBody> CreateGround(ChSystem* system){
 	ground->GetCollisionModel()->BuildModel();
 	// Side Wall
 	utils::AddBoxGeometry(ground.get(), ChVector<>(0.375, 4.0, 2.0),
-		ChVector<>(12.5, 0, 2.0 - .25), ChQuaternion<>(1, 0, 0, 0), true);//side wall
+		ChVector<>(11.5, 0, 2.0 - .25), ChQuaternion<>(1, 0, 0, 0), true);//side wall
 	ground->GetCollisionModel()->BuildModel();
 	ground->SetCollide(true);
 
@@ -212,10 +212,10 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 	double num_layers = 50;
 	for (int il = 0; il < num_layers; il++) {
 		gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
-		center.z() += 2 * r;
-		hdims.x() -= 2 * r;
-		hdims.y() -= 2 * r;
-		center.x() += 2 * r_g + 0.0005;
+		center.z() += 2 * r_g +0.0005;
+		hdims.x() -= 1 * r;
+		hdims.y() -= 1 * r;
+		center.x() += 1 * r;
 		std::cout << center.z() << std::endl;
 		if (center.z() > height){ break; }
 	}
@@ -379,7 +379,7 @@ int main(int argc, char* argv[]){
 	// Create the ground(terrain)
 	auto ground = CreateGround(system);
 	// Create the sandpile(spheres pyramid)--Calculate computational time to build it.
-	ChVector<> hdims(4., 4., 0.);
+	ChVector<> hdims(3., 3., 0.);
 	int start_s = clock();
 		auto sandpile = CreateSandpile(system, material_terrain, hdims);
 	int stop_s = clock();
@@ -405,7 +405,7 @@ int main(int argc, char* argv[]){
 #ifdef CHRONO_OPENGL
 	opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
 	gl_window.Initialize(1280, 720, "Loader-Piling", system);
-	gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(7.5, 0, 0), ChVector<>(0, 0, 1));
+	gl_window.SetCamera(ChVector<>(5., -10, 0), ChVector<>(5., -9, 0), ChVector<>(0, 0, 1));
 	gl_window.SetRenderMode(opengl::WIREFRAME);
 #endif
 
@@ -426,6 +426,10 @@ int main(int argc, char* argv[]){
 		ChVector<> vel_CG = loader->chassis->GetPos_dt();
 		vel_CG = loader->chassis->GetCoord().TransformDirectionParentToLocal(vel_CG);
 
+		ChVector<> pos_B = loader->bucket->GetPos();
+		ChVector<> vel_B = loader->bucket->GetPos_dt();
+		vel_B = loader->bucket->GetCoord().TransformDirectionParentToLocal(vel_B);
+
 		double pos_lift = loader->lin_ch2lift->Get_dist_funct()->Get_y(time) + loader->lin_ch2lift->Get_lin_offset();
 		double pos_tilt = loader->lin_lift2rod->Get_dist_funct()->Get_y(time) + loader->lin_ch2lift->Get_lin_offset();
 
@@ -436,8 +440,9 @@ int main(int argc, char* argv[]){
 		double fp_tilt = loader->GetReactTiltForce();
 
 		// Save output data from modules on CSV writer.I don't save time since time step is fixed.
-		csv << pos_CG.x() << pos_CG.y() << pos_CG.z();
-		csv << vel_CG.x() << vel_CG.y() << vel_CG.z();
+		csv << time;
+		csv << pos_CG.x() << pos_B.x();
+		csv << vel_CG.x() << vel_B.x();
 		csv << pos_lift << pos_tilt;
 		csv << ang_lift << ang_tilt;
 		csv << fp_lift << fp_tilt;
