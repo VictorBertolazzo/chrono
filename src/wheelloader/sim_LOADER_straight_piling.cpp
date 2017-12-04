@@ -71,7 +71,7 @@ TerrainType terrain_type = RIGID_TERRAIN;
 int Id_g = 100;
 double r_g = 5e-2;
 double rho_g = 2500;
-double coh_pressure = 300;
+double coh_pressure = 50;
 float mu_g = 0.9f;
 
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
@@ -193,7 +193,7 @@ std::shared_ptr<ChBody> CreateGround(ChSystem* system){
 	ground->GetCollisionModel()->BuildModel();
 	// Side Wall
 	utils::AddBoxGeometry(ground.get(), ChVector<>(0.375, 4.0, 2.0),
-		ChVector<>(11.5, 0, 2.0 - .25), ChQuaternion<>(1, 0, 0, 0), true);//side wall
+		ChVector<>(10.5, 0, 2.0 - .25), ChQuaternion<>(1, 0, 0, 0), true);//side wall
 	ground->GetCollisionModel()->BuildModel();
 	ground->SetCollide(true);
 
@@ -208,7 +208,7 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 	m1->setDefaultSize(r_g);
 	gen.setBodyIdentifier(Id_g);
 	double r = r_g * 1.01;
-	ChVector<> center(8.0, 0, r);
+	ChVector<> center(7.0, 0, r);
 	double num_layers = 50;
 	for (int il = 0; il < num_layers; il++) {
 		gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
