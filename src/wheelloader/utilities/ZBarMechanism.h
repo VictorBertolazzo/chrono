@@ -572,7 +572,7 @@ class MyWheelLoader {
 		//lin_lift2rod->Set_dist_funct(tdisplacement);
 
 		// Asset for the linear actuator
-		//lin_lift2rod->AddAsset(std::make_shared<ChPointPointSegment>());
+		lin_lift2rod->AddAsset(std::make_shared<ChPointPointSegment>());
 
 		system.AddLink(lin_lift2rod);
 		//-----------------------------------------------------------------------------------------------------//
@@ -596,7 +596,7 @@ class MyWheelLoader {
 			lin_ch2lift->Set_lin_offset(0.0);
 		std::cout << "Lift offset : " << lin_ch2lift->Get_lin_offset() << std::endl;
 		//	//	ASSET FOR LINEAR ACTUATOR
-		//lin_ch2lift->AddAsset(std::make_shared<ChPointPointSegment>());
+		lin_ch2lift->AddAsset(std::make_shared<ChPointPointSegment>());
 		// Line brought outside in main.cpp
 		//lin_ch2lift->Set_dist_funct(ldisplacement);
 		system.Add(lin_ch2lift);
