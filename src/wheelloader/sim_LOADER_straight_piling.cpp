@@ -69,10 +69,15 @@ TerrainType terrain_type = RIGID_TERRAIN;
 // Parameters for granular material
 // =============================================================================
 int Id_g = 100;
-double r_g = 5e-2;
+double r_g = 10e-2;
 double rho_g = 2500;
+<<<<<<< HEAD
 double coh_pressure = 5;
 float mu_g = 0.9f;
+=======
+double coh_pressure = 50;
+float mu_g = 1.0f;
+>>>>>>> a77517bb4d19d22eedb7843d5f0742a03821a6ff
 
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
 double mass_g = rho_g * vol_g;
@@ -84,7 +89,7 @@ double coh_force = CH_C_PI * r_g * r_g * coh_pressure;
 // =============================================================================
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(-1.5, 0, 0.0);
+ChVector<> initLoc(-1.0, 0, 0.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // =============================================================================
@@ -98,7 +103,7 @@ int threads = 20;
 bool thread_tuning = false;
 
 // Total simulation duration.
-double time_end = 8.;
+double time_end = 7.50;
 // Heap Height.
 double height = 4.0;
 
@@ -111,7 +116,7 @@ uint max_iteration_normal = 5;
 uint max_iteration_sliding = 50;
 uint max_iteration_spinning = 50;
 
-float contact_recovery_speed = -1;
+float contact_recovery_speed = .1;
 
 // =============================================================================
 //	OUTPUT
@@ -232,7 +237,7 @@ utils::Generator CreateSandpile(ChSystem* system, std::shared_ptr<ChMaterialSurf
 // =============================================================================
 void OutputCSVdata(ChSystemParallel* sys, int out_frame, double time, utils::CSV_writer csv){
 	
-	csv.write_to_file(out_dir + "/output.dat");
+	csv.write_to_file(out_dir + "/outputL.dat");
 
 };
 void SetSolverParameters(ChSystemParallel* system){
@@ -255,7 +260,7 @@ void SetSolverParameters(ChSystemParallel* system){
 	system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
 	system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
 	system->GetSettings()->solver.alpha = 0;
-	system->GetSettings()->solver.contact_recovery_speed = -1;
+	system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
 	system->GetSettings()->solver.bilateral_clamp_speed = 1e8;
 	system->GetSettings()->solver.solver_type = SolverType::BB;
 	// Set collision parameters
